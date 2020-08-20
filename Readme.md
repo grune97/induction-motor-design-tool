@@ -1,6 +1,6 @@
 # About Induction Motor Design Tool
 
-## Disclaimer 
+## A Few Words About This Code 
 **This tool is intended to replace iterative calculations in the design of asynchronous motors.** 
 **This tool is curently in development and may not work**
 
