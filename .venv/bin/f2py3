@@ -1,4 +1,6 @@
-#!/home/andrej/Documents/induction-motor-design-tool/.venv/bin/python3
+#!/bin/sh
+'''exec' /home/andrej/anaconda3/envs/.venv/bin/python "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys
