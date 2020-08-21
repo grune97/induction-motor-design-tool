@@ -81,7 +81,7 @@ def Variable(Pn_Mn,
             P_2n =  Pn_Mn * n1 / 9.55
             Mn = Pn_Mn
             
-        import test3               
+        import main               
             
     except ValueError:
         print("Error, press Enter to continue...")

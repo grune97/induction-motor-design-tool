@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter.ttk import *
+from PIL import ImageTk, Image
 from Variable_Declaration import Variable
 
 #global MagnetizingCurrent_Max
@@ -16,24 +17,29 @@ Calculation_Combinations = 5
 
 # Lists
 Material_Elements = ["M-15", "M19", "M-22", "M-27", "M-36", "M-43", "M-45"]
+SlotType_Elements = ["Rectangular", "Trapezoidal", "Round", "Circular"]
 
 # Preambule
 
-root = Tk()
+root = Tk() 
 root.title('Induction Motor Design Tool')
 
 # Frame
 
 frame_1 = LabelFrame(root, text="Nominal Data")
-frame_1.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=3)
+frame_1.grid(row=0, column=0, rowspan=3, sticky="snew", padx=4)
 frame_2 = LabelFrame(root, text="Ratios")
-frame_2.grid(row=0, column=1, sticky="nsew")
+frame_2.grid(row=2, column=1, sticky="snew", padx=4)
 frame_3 = LabelFrame(root, text="Materials")
-frame_3.grid(row=1, column=1, sticky="new")
+frame_3.grid(row=0, column=2, rowspan=2, sticky="nsew", padx=4, pady=4)
 frame_4 = LabelFrame(root, text = "Conditions")
-frame_4.grid(row=0, column=2, sticky="new")
-frame_5 = LabelFrame(root, text="Power/Torque")
-frame_5.grid(row=1, column=2, sticky="new")
+frame_4.grid(row=2, column=2, sticky="nsew", padx=4)
+frame_5 = LabelFrame(root, text="Power [kW]/Torque [Nm]")
+frame_5.grid(row=1, column=1, sticky="snew", padx=4, pady=4)
+frame_6 = LabelFrame(root, text="Slot Type")
+frame_6.grid(row=0, column=3, rowspan=3, sticky="snew", padx=4, pady=4)
+frame_7 = LabelFrame(root, text="Write in File")
+frame_7.grid(row=0, column=1, sticky="snew", padx=4, pady=4)
 
 # Fields
 
@@ -58,11 +64,21 @@ Winding_Clicked = StringVar()
 Winding_Clicked.set("Delta")
 Winding_Menu = OptionMenu(frame_1, Winding_Clicked, "Delta", "Star")
 
+# Conductivity
+
+Conductivity_Label1 = Label(frame_3, text="Conductivity").pack(pady=2)
+Conductivity_Label2 = Label(frame_3, text="[Sm/mm^2]").pack(pady=2)
+Conductivity_Entry = Entry(frame_3, width=10)
+Conductivity_Entry.pack(pady=2)
+Conductivity_Entry.insert(0, "57")
+
 # Right Side
 Material = Label(frame_3, text="Core Material")
 Material_Clicked = StringVar()
 Material_Clicked.set(Material_Elements[0])
 Material_Menu = OptionMenu(frame_3, Material_Clicked, *Material_Elements)
+Material.pack(pady=2)
+Material_Menu.pack(pady=2)
 
 Kp = Label(frame_2, text="Starting Current Ratio")
 Kp_Entry = Entry(frame_2, width=10)
@@ -76,18 +92,18 @@ K_Mm_Entry = Entry(frame_2, width=10)
 # Grid
 
 # Left Side
-Voltage.pack()
-Voltage_Entry.pack()
-Frequency.pack()
-Frequency_Entry.pack()
-Num_Poles.pack()
-Num_Poles_Entry.pack()
-Eta.pack()
-Eta_Entry.pack()
-PowerFactor.pack()
-PowerFactor_Entry.pack()
-Winding.pack()
-Winding_Menu.pack()
+Voltage.pack(pady=2, padx=2)
+Voltage_Entry.pack(pady=2)
+Frequency.pack(pady=2, padx=2)
+Frequency_Entry.pack(pady=2)
+Num_Poles.pack(pady=2, padx=2)
+Num_Poles_Entry.pack(pady=2)
+Eta.pack(pady=2, padx=2)
+Eta_Entry.pack(pady=2)
+PowerFactor.pack(pady=2, padx=2)
+PowerFactor_Entry.pack(pady=2)
+Winding.pack(pady=2, padx=2)
+Winding_Menu.pack(pady=2)
 """
 Voltage.grid(row=0, column=0)
 Voltage_Entry.grid(row=0, column=1)
@@ -105,19 +121,14 @@ Winding_Menu.grid(row=5, column=1)
 
 # Right Side
 
-Material.pack()
-Material_Menu.pack()
 
-Kp.pack()
-Kp_Entry.pack()
-K_Mp.pack()
-K_Mp_Entry.pack()
-K_Mm.pack()
-K_Mm_Entry.pack()
 
-# Frame Power/Torque (frame_5)
-Pn_Mn = Entry(frame_5, width=7)
-Pn_Mn.pack(side='left')
+Kp.pack(pady=2, padx=2)
+Kp_Entry.pack(pady=2)
+K_Mp.pack(pady=2, padx=2)
+K_Mp_Entry.pack(pady=2)
+K_Mm.pack(pady=2, padx=2)
+K_Mm_Entry.pack(pady=2)
 
 # Check Boxes
 
@@ -133,11 +144,11 @@ PowerFactor_Box = Checkbutton(frame_4, text="Power Factor", variable = PowerFact
 Kp_Box = Checkbutton(frame_4, text="Kp", variable = Kp_Box_Var)
 K_Mp_Box = Checkbutton(frame_4, text="kMp", variable = K_Mp_Box_Var)
 K_Mm_Box = Checkbutton(frame_4, text="kMm", variable = K_Mm_Box_Var)
-PowerFactor_Box.pack()
-Eta_Box.pack()
-Kp_Box.pack()
-K_Mp_Box.pack()
-K_Mm_Box.pack()
+PowerFactor_Box.pack(padx=4, pady=2, anchor="w")
+Eta_Box.pack(padx=4, pady=2, anchor="w")
+Kp_Box.pack(padx=4, pady=2, anchor="w")
+K_Mp_Box.pack(padx=4, pady=2, anchor="w")
+K_Mm_Box.pack(padx=4, pady=2, anchor="w")
 
 # Radio Buttons
 a=0
@@ -182,33 +193,33 @@ def Options():
     OptionsWindow = Toplevel()
     OptionsWindow.title('Proektiranje na Asinhron Motor - Options')
     
-    MagnetizingCurrent_Max_Label = Label(OptionsWindow, text="Maximum Magnetizing Current [%]").grid(row=0, column=0)
+    MagnetizingCurrent_Max_Label = Label(OptionsWindow, text="Maximum Magnetizing Current [%]").grid(row=0, column=0, padx=4, pady=2, sticky="w")
     MagnetizingCurrent_Max_Entry = Entry(OptionsWindow, width=10)
-    MagnetizingCurrent_Max_Entry.grid(row=0, column=1)
+    MagnetizingCurrent_Max_Entry.grid(row=0, column=1, pady=2, padx=4)
     MagnetizingCurrent_Max_Entry.insert(0, MagnetizingCurrent_Max)
     MagnetizingCurrent_Max = MagnetizingCurrent_Max_Entry.get()
     
-    MagnetizingCurrent_Min_Label = Label(OptionsWindow, text="Minimum Magnetizing Current [%]").grid(row=1, column=0)   
+    MagnetizingCurrent_Min_Label = Label(OptionsWindow, text="Minimum Magnetizing Current [%]").grid(row=1, column=0, padx=4, pady=2, sticky="w")   
     MagnetizingCurrent_Min_Entry = Entry(OptionsWindow, width=10)
-    MagnetizingCurrent_Min_Entry.grid(row=1, column=1)
+    MagnetizingCurrent_Min_Entry.grid(row=1, column=1, pady=2, padx=4)
     MagnetizingCurrent_Min_Entry.insert(0, MagnetizingCurrent_Min)   
     
-    StartingToruqe_Precision_Label = Label(OptionsWindow, text="Starting Toruqe Deviation [%]").grid(row=2, column=0)
+    StartingToruqe_Precision_Label = Label(OptionsWindow, text="Starting Toruqe Deviation [%]").grid(row=2, column=0, padx=4, pady=2, sticky="w")
     StartingToruqe_Precision_Entry = Entry(OptionsWindow, width=10)
-    StartingToruqe_Precision_Entry.grid(row=2, column=1)
+    StartingToruqe_Precision_Entry.grid(row=2, column=1, pady=2, padx=4)
     StartingToruqe_Precision_Entry.insert(0, StartingToruqe_Precision)
     
-    MaxToruqe_Precision_Label = Label(OptionsWindow, text="Maximum Toruqe Deviation [%]").grid(row=3, column=0)
+    MaxToruqe_Precision_Label = Label(OptionsWindow, text="Maximum Toruqe Deviation [%]").grid(row=3, column=0, padx=4, pady=2, sticky="w")
     MaxToruqe_Precision_Entry = Entry(OptionsWindow, width=10)
-    MaxToruqe_Precision_Entry.grid(row=3, column=1)
+    MaxToruqe_Precision_Entry.grid(row=3, column=1, pady=2, padx=4)
     MaxToruqe_Precision_Entry.insert(0, MaxToruqe_Precision)
     
-    Calculation_Combinations_Label = Label(OptionsWindow, text="Calculation Combinations").grid(row=4, column=0)
+    Calculation_Combinations_Label = Label(OptionsWindow, text="Calculation Combinations").grid(row=4, column=0, padx=4, pady=2, sticky="w")
     Calculation_Combinations_Entry = Entry(OptionsWindow, width=10)
-    Calculation_Combinations_Entry.grid(row=4, column=1)
+    Calculation_Combinations_Entry.grid(row=4, column=1, pady=2, padx=4)
     Calculation_Combinations_Entry.insert(0, Calculation_Combinations)    
     
-    Okey_2 = Button(OptionsWindow, text="OK", command=lambda: Options_Destroy(MagnetizingCurrent_Max_Entry.get(), MagnetizingCurrent_Min_Entry.get(), StartingToruqe_Precision_Entry.get(), MaxToruqe_Precision_Entry.get(), Calculation_Combinations_Entry.get())).grid(row=5, column=1)
+    Okey_2 = Button(OptionsWindow, text="OK", command=lambda: Options_Destroy(MagnetizingCurrent_Max_Entry.get(), MagnetizingCurrent_Min_Entry.get(), StartingToruqe_Precision_Entry.get(), MaxToruqe_Precision_Entry.get(), Calculation_Combinations_Entry.get())).grid(row=5, column=1, padx=4, pady=4)
           
     """
     eta_Precision_Label = Label(OptionsWindow, text="Efficiency Deviation [%]").grid(row=4, column=0)
@@ -237,23 +248,48 @@ def Options_Destroy(MagnetizingCurrent_Max_Entry, MagnetizingCurrent_Min_Entry, 
     
 # Okey Buttons
 
-Okey = Button(root, text="OK", command=Start).grid(row=2, column=2)
+Okey = Button(root, text="OK", command=Start).grid(row=3, column=3, padx=4, sticky="e")
 
 # Frame Power/Toruqe (frame_5)
+Pn_Mn = Entry(frame_5, width=7)
+Pn_Mn.pack(side='left', padx=4)
 Pn_Radio = Radiobutton(frame_5, text="Pn", variable=r, value=1).pack(side='left')
 Mn_Radio = Radiobutton(frame_5, text="Mn", variable=r, value=2).pack(side='left')
 
 # Option Button
 
-OptionsButton = Button(root, text="Options", command=Options).grid(row=3, column=2)
+OptionsButton = Button(root, text="Options", command=Options).grid(row=4, column=3, padx=4, pady=4, sticky="e")
+
+# Help Button
+
+HelpButton = Button(root, text="Help").grid(row=4, column=0, padx=4, pady=4, sticky="w")
 
 # Progress Bar
 
 progress = Progressbar(root, orient = HORIZONTAL, 
               length = 100, mode = 'determinate')
-progress.grid(row=2, column = 0, columnspan = 2, sticky = 'nsew', padx=3, pady=2)
+progress.grid(row=3, column = 0, columnspan = 3, sticky = 'nsew', padx=3, pady=4)
 
+# Slot Type (frame_6)
 
+SlotType_Label = Label(frame_6, text="").pack()
+SlotType_Clicked = StringVar()
+SlotType_Clicked.set(SlotType_Elements[0])
+SlotType_Menu = OptionMenu(frame_6, SlotType_Clicked, *SlotType_Elements).pack(padx=4, pady=2)
+
+SlotType_Image = ImageTk.PhotoImage(Image.open("/home/andrej/Documents/induction-motor-design-tool/Images/Rectangular_Slot.png"))
+SlotType_Labbel = Label(frame_6, image=SlotType_Image).pack(padx=4, pady=2)
+
+# Ouptut File (frame_7)
+
+WriteCSV_Var = IntVar()
+WritePDF_Var = IntVar()
+
+WriteCSV = Checkbutton(frame_7, text="Write in .csv", variable=WriteCSV_Var)
+WritePDF = Checkbutton(frame_7, text="Write in .pdf", variable=WritePDF_Var)
+
+WriteCSV.pack(padx=4, pady=2, anchor="w")
+WritePDF.pack(padx=4, pady=2, anchor="w")
 
 
 #myButton = Button(root, text='Da', padx=100, command=Click)
