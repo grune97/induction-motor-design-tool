@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter.ttk import *
-from temp2 import Variable
+from Variable_Declaration import Variable
 
 #global MagnetizingCurrent_Max
 #global MagnetizingCurrent_Min_Entry

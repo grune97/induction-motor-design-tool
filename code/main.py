@@ -883,6 +883,10 @@ with open('some.csv', "w") as file:
         k102 = 3 * Un * U_1nf
         
         k103 = (D*10 + 2 * h5) * math.pi - k12
+
+        k104 = B_delta / B_z2 * (D - 2 * delta) * math.pi
+
+        k105 = math.pi(2 * delta - D + 2 * h5)
                                                         
         while counter_for_CoilPitch < 5: ## As there are 5 types of Coil Pitching
 
@@ -929,13 +933,24 @@ with open('some.csv', "w") as file:
                                         
 def RotorDimensions_Rounded():
     ##
+    """
     b_z2 = B_delta * t2 /  B_z2
+    """
+    b_z2 = (k104 + k104 * r / q) / Z_rotor
     ##
-    d1 = (math.pi * (D_2 - 2 * h_5) - int(N_k1) * b_z2) / (math.pi + 28)
+    d1 = (math.pi * (D2 - 2 * h5) - Z_rotor * b_z2) / (math.pi + Z_rotor)
     ##
     Sk = math.pi / 8 * (d1**2 + d2**2) + ((d1 + d2) * h1) / 2
-    d1 - d2 = 2 * h1 * math.tan(math.pi/int(N_k1))                                        
-                                        
+    d1 - d2 = 2 * h1 * math.tan(math.pi / Z_rotor)    
+
+    # 
+    #   ((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))
+    #   -((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))  
+    temp_variable = math.tan(math.pi / Z_rotor)
+    #   ((16 - pi**2*temp_variable**2)**(1/2) * (k105 + Z_rotor * k104 + Z_rotor * k104 * r / q))/((math.pi * temp_variable - 4)*(Z_rotor + math.pi))                                  
+    #   -((pi*(2*delta - D + 2*h5) + N_k1*(k104 + (k104*r)/q))/(N_k1 + pi) + ((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi)))/(2*tan(pi/N_k1))
+
+
                                         b_k2 = I2 / (g2 * h_12)
                                         
                                         g2 = I2 / ((h_12 * b_k2 + 0.5 * (b_k2**2 - a2**2)) * 1.05) ## moze da se douprosti

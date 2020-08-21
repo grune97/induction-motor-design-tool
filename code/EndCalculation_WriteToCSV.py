@@ -9,7 +9,7 @@ import csv
 import math
 import sympy as sym
 
-from test2 import *
+from main import *
 
 def RotorDimensions_Rounded():
     ##
