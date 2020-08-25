@@ -8,12 +8,15 @@ def Variable(Pn_Mn,
              Eta_Entry, 
              PowerFactor_Entry,
              Winding_Clicked,
+             Material_Clicked,
+             Conductivity_Entry,
              Eta_Box,
              PowerFactor_Box,
              Kp_Box,
              K_Mp_Box,
              K_Mm_Box,
              r,
+             StatorSlot_Clicked,
              MagnetizingCurrent_Max_Entry,
              MagnetizingCurrent_Min_Label,
              StartingToruqe_Precision_Entry,
@@ -29,6 +32,9 @@ def Variable(Pn_Mn,
     global p
     global eta_n
     global cos_phi_n
+
+    global Material
+    global conductivity
     
     global kp
     global k_Mp
@@ -41,6 +47,8 @@ def Variable(Pn_Mn,
     global k_Mm_condition
     global k_Mp_condition
     global kp_condition
+
+    global StatorSlot
     
     global MagnetizingCurrent_max
     global MagnetizingCurrent_min   
@@ -61,12 +69,17 @@ def Variable(Pn_Mn,
         p = float(Num_Poles_Entry)
         eta_n = float(Eta_Entry)
         cos_phi_n = float(PowerFactor_Entry)  
+
+        Material = Material_Clicked
+        conductivity = float(Conductivity_Entry)
         
         eta_condition = float(Eta_Box)
         power_factor_condition = float(PowerFactor_Box)
         kp_condition = float(Kp_Box)
         k_Mp_condition = float(K_Mp_Box)
         k_Mm_condition = float(K_Mm_Box) 
+
+        StatorSlot = StatorSlot_Clicked
         
         MagnetizingCurrent_max = float(MagnetizingCurrent_Max_Entry)
         MagnetizingCurrent_min = float(MagnetizingCurrent_Min_Label)
