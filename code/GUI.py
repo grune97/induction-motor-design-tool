@@ -4,11 +4,6 @@ from tkinter.ttk import *
 from PIL import ImageTk, Image
 from Variable_Declaration import Variable
 
-#global MagnetizingCurrent_Max
-#global MagnetizingCurrent_Min_Entry
-#global StartingToruqe_Precision_Entry
-#global MaxToruqe_Precision_Entry
-
 MagnetizingCurrent_Max = 30
 MagnetizingCurrent_Min = 15
 StartingToruqe_Precision = 90 
@@ -16,8 +11,8 @@ MaxToruqe_Precision = 90
 Calculation_Combinations = 5
 
 # Lists
-Material_Elements = ["M-15", "M19", "M-22", "M-27", "M-36", "M-43", "M-45"]
-SlotType_Elements = ["Rectangular", "Trapezoidal", "Round", "Circular"]
+Material_Elements = ["M-15", "M-19", "M-22", "M-27", "M-36", "M-43", "M-45"]
+SlotType_Elements = ["Rectangular", "Trapezoidal", "Rounded", "Circular"]
 
 # Preambule
 
@@ -121,8 +116,6 @@ Winding_Menu.grid(row=5, column=1)
 
 # Right Side
 
-
-
 Kp.pack(pady=2, padx=2)
 Kp_Entry.pack(pady=2)
 K_Mp.pack(pady=2, padx=2)
@@ -155,8 +148,8 @@ a=0
 
 r = IntVar()
 r.set("1")
+
 def Start():
-    print(r.get())
     Variable(Pn_Mn.get(), 
              Voltage_Entry.get(), 
              Frequency_Entry.get(), 
@@ -167,12 +160,15 @@ def Start():
              Eta_Entry.get(), 
              PowerFactor_Entry.get(), 
              Winding_Clicked.get(),
+             Material_Clicked.get(),
+             Conductivity_Entry.get(),
              Eta_Box_Var.get(),
              PowerFactor_Box_Var.get(),
              Kp_Box_Var.get(),
              K_Mp_Box_Var.get(),
              K_Mm_Box_Var.get(),
              r.get(),
+             SlotType_Clicked.get(),
              MagnetizingCurrent_Max,
              MagnetizingCurrent_Min,
              StartingToruqe_Precision,
@@ -181,9 +177,7 @@ def Start():
              )
     
 def Options():
-    
-    print("a")
-    
+  
     global MagnetizingCurrent_Max  
     global MagnetizingCurrent_Min
     global StartingToruqe_Precision
@@ -277,8 +271,19 @@ SlotType_Clicked = StringVar()
 SlotType_Clicked.set(SlotType_Elements[0])
 SlotType_Menu = OptionMenu(frame_6, SlotType_Clicked, *SlotType_Elements).pack(padx=4, pady=2)
 
-SlotType_Image = ImageTk.PhotoImage(Image.open("/home/andrej/Documents/induction-motor-design-tool/Images/Rectangular_Slot.png"))
-SlotType_Labbel = Label(frame_6, image=SlotType_Image).pack(padx=4, pady=2)
+SlotType_Image = ImageTk.PhotoImage(Image.open("images/Rectangular_Slot.png"))
+SlotType_Label = Label(frame_6, image=SlotType_Image)
+SlotType_Label.pack(padx=4, pady=2)
+
+def callback(*args):
+    global SlotType_Label
+    global SlotType_Image
+    SlotType_Label.pack_forget()
+    SlotType_Image = ImageTk.PhotoImage(Image.open("images/{}".format(SlotType_Clicked.get())+"_Slot.png"))
+    SlotType_Label = Label(frame_6, image=SlotType_Image)
+    SlotType_Label.pack(padx=4, pady=2)
+
+SlotType_Clicked.trace("w", callback)
 
 # Ouptut File (frame_7)
 
