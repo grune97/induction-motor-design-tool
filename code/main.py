@@ -7,9 +7,9 @@ from scipy import interpolate
 import matplotlib.pyplot as plt
 import csv
 import math
-import sympy as sym
+#import sympy as sym
 
-from temp2 import *
+from Variable_Declaration import *
 
 """
 root = Tk()
@@ -23,7 +23,11 @@ def UpdateBar(integer):
     progress['value'] = integer
 """
 
-def StatorDimensions_Rectangular(k12, k103, r, q, Z_stator, Sk, a1, h5, temp_flat_1):
+def SlotDimensions_Rectangular(k12, k103, r, q, Z_stator, Sk, a1, h5, temp_flat_1):
+    global b_z1 
+    global b_k1
+    global h_z1
+    
     if temp_flag_1 != 1:
         """
         b_z1 = (B_delta * t1) / (B_z1 * k_Fe)
@@ -39,7 +43,12 @@ def StatorDimensions_Rectangular(k12, k103, r, q, Z_stator, Sk, a1, h5, temp_fla
     ##
     # h1 = h_z1 - h5    
     
-def SlotDimensions_Trapezoidal(k12, k45, k48, k52, k53, k54, k55, k58, r, q, Z_stator, D, Sktemp_flag_1):
+def SlotDimensions_Trapezoidal(k12, k45, k48, k52, k53, k54, k55, k58, r, q, Z_stator, D, Sk, temp_flag_1):
+    global b_z1 
+    global b_k11
+    global h_z1
+    global k_1
+    
     if temp_flag_1 != 1:
         ##
         b_k11 = (k45 - k12 * r / q) / Z_stator ##
@@ -51,6 +60,26 @@ def SlotDimensions_Trapezoidal(k12, k45, k48, k52, k53, k54, k55, k58, r, q, Z_s
     k_22 = (k48 + r / q * (k52 + (k53 - 2 * k12**2 * r / q) / Z_stator) + k54 / Z_stator) / math.pi + k55 - D * b_k11 - (2 * Sk * Z_stator) / math.pi
     ##
     h_z1 = (-k_1 + math.sqrt(k_1**2 - 4 * k_22)) / 2    
+"""
+def RotorDimensions_Rounded():
+    ##
+    
+    b_z2 = B_delta * t2 /  B_z2
+    
+    b_z2 = (k104 + k104 * r / q) / Z_rotor
+    ##
+    d1 = (math.pi * (D2 - 2 * h5) - Z_rotor * b_z2) / (math.pi + Z_rotor)
+    ##
+    Sk = math.pi / 8 * (d1**2 + d2**2) + ((d1 + d2) * h1) / 2
+    d1 - d2 = 2 * h1 * math.tan(math.pi / Z_rotor)    
+
+    # 
+    #   ((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))
+    #   -((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))  
+    temp_variable = math.tan(math.pi / Z_rotor)
+    #   ((16 - pi**2*temp_variable**2)**(1/2) * (k105 + Z_rotor * k104 + Z_rotor * k104 * r / q))/((math.pi * temp_variable - 4)*(Z_rotor + math.pi))                                  
+    #   -((pi*(2*delta - D + 2*h5) + N_k1*(k104 + (k104*r)/q))/(N_k1 + pi) + ((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi)))/(2*tan(pi/N_k1))
+"""
 
 
 def conditions(eta_n, cos_phi, StartingCurrentRatio, StartingTorqueRatio, MaxTorqueRatio):
@@ -73,13 +102,13 @@ def conditions(eta_n, cos_phi, StartingCurrentRatio, StartingTorqueRatio, MaxTor
 
 def SlotPermeance_Rectangular_Single(h1, b_k1, h5, a1):
     global lambda_s
-    lambda_s = h1 / (3 * b_k1) + h_5 / a1
+    lambda_s = h1 / (3 * b_k1) + h5 / a1
     
 def SlotPermeance_Rectangular_Double(h_s1, h_su, gamma_k, bs, hi, ho, hw, bw, h_os, b_os):
     global lambda_sk
     lambda_sk = 1/4 * ((h_s1 + h_su * math.cos(gamma_k**2)) / (3 * bs) + h_su / bs + (h_su * math.cos(gamma_k)) / bs + hi / bs + (1 + math.cos(gamma_k)**2) * (ho / bs + hw / bw + h_os / b_os))
     
-def SlotPermeance_Oval_Double(hs, b1, b2, CoilPitch, h_os, b_os, ho, b1):
+def SlotPermeance_Oval_Double(hs, b1, b2, CoilPitch, h_os, b_os, ho, bo):
     if CoilPitch <= 1 and CoilPitch >= 2/3:
         K2 = (1 + 3 * CoilPitch) / 4
     elif CoilPitch <= 2/3 and CoilPitch >= 1/3:
@@ -90,7 +119,14 @@ def SlotPermeance_Oval_Double(hs, b1, b2, CoilPitch, h_os, b_os, ho, b1):
     global lambda_s
     lambda_s = (2 * hs * K1) / (3 * (b1 + b2)) + (ho / bo + ho / b1 - bo / (2*b1) + 0.785) * K2
     
-def SlotPermeance_Trapezoidal_Double(hs, b1, b2, CoilPitch, h_os, b_os, ho, b1, hw):
+def SlotPermeance_Trapezoidal_Double(hs, b1, b2, CoilPitch, h_os, b_os, ho, bo, hw):
+    if CoilPitch <= 1 and CoilPitch >= 2/3:
+        K2 = (1 + 3 * CoilPitch) / 4
+    elif CoilPitch <= 2/3 and CoilPitch >= 1/3:
+        K2 = (6 * CoilPitch - 1) / 4
+        
+    K1 = 1/4 + 3/4 * K2
+
     global lambda_s
     lambda_s = (2 * hs * K1) / (3 * (b1 + b2)) + (ho / bo + ho / b1 + (3 * hw) / (b1 + 2 * b_os)) * K2
                                                   
@@ -106,17 +142,24 @@ def SlotPermeance_Circular_Closed(h_or, Ib):
     global lambda_r
     lambda_r = 0.66 + 0.3 + 1.12 * h_or * 10**3 / Ib**2
     
-def SlotPermeance_Round_Closed(hr, b1, h_or, b_or, Ab):
+def SlotPermeance_Round_Closed(hr, b1, h_or, b_or, Ab, Ib):
     global lambda_r
     lambda_r = hr / (3 * b1) * (1 - (math.pi * b1**2) / (8 * Ab))**2 + 0.66 - h_or / (2 * b1) + 0.3 + 1.12 * h_or * 10**3 / Ib**2
-    
+"""    
 def SlotPermeance_Round    
 
 def SlotPermeance_Oval_Single():
     global lambda_s
     lambda_s = 
+"""
 
+def StatorPermeance_Trapezoidal_Single(h1, b_k11, b_k21, h5, a1, h6, k82):
+    global lambda_k1
+    lambda_k1 = (2 * h1) / (3 * (b_k11 + b_k21)) + 0.6 / b_k11 + (2 * h5) / (a1 + b_k11 + h6 / a1) ## gresno za malce
 
+def RotorPermeance_Trapezoidal(h_z1, Z_rotor, Z_stator, k82, k83, k84, k85, k_w1, N_k1):
+    global lambda_k2
+    lambda_k2 = Z_rotor * (k82 * h_z1 - k83) / (k85 * int(N_k1) * Z_stator * k_w1) + k84 / k85
 
 x1_A = []
 y1_A = []
@@ -185,7 +228,7 @@ i0_mi_percentage = [0]
 
 gamma_Fe = 7700
 
-with open('Linear_Load_Data_Points.csv') as csv_file:
+with open('/home/andrej/Documents/induction-motor-design-tool/data_points/Linear_Load_Data_Points.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         if row[0] != '0':
@@ -204,7 +247,7 @@ with open('Linear_Load_Data_Points.csv') as csv_file:
             x5_A.append(float(row[12]))
             y5_A.append(float(row[13]))
       
-with open('Magnetic Flux Data Points.csv') as csv_file:
+with open('/home/andrej/Documents/induction-motor-design-tool/data_points/Magnetic Flux Data Points.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         if row[0] != '0':
@@ -222,7 +265,7 @@ with open('Magnetic Flux Data Points.csv') as csv_file:
             y4_B_delta.append(float(row[10]))
       
 
-with open('Mechanical Losess Data Points.csv') as csv_file:
+with open('/home/andrej/Documents/induction-motor-design-tool/data_points/Mechanical Losess Data Points.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         if row[0] != '0':
@@ -235,53 +278,48 @@ with open('Mechanical Losess Data Points.csv') as csv_file:
             x3_P_meh.append(float(row[6]))
             y3_P_meh.append(float(row[7]))
      
-with open('Xi Data Points.csv') as csv_file:
+with open('/home/andrej/Documents/induction-motor-design-tool/data_points/Xi Data Points.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         if row[0] != '0':
             x_Xi.append(float(row[0]))
             y_Xi.append(float(row[1]))
-            
-with open('M-22 Steel.csv') as csv_file:
+
+with open("/home/andrej/Documents/induction-motor-design-tool/materials/" + Material + " Steel.csv") as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         if row[0] != '0':
             x_M22_Steel.append(float(row[0]))
             y_M22_Steel.append(float(row[1]))
             
-with open('M-22 Steel Core Loss.csv') as csv_file:
+with open("/home/andrej/Documents/induction-motor-design-tool/materials/" + Material + " Steel Core Loss.csv") as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         if row[0] != '0':
             x_M22_CoreLoss.append(float(row[0]))
             y_M22_CoreLoss.append(float(row[1]))   
             
-with open('k_i2.csv') as csv_file:
+with open('/home/andrej/Documents/induction-motor-design-tool/data_points/k_i2.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         x_k_i2.append(float(row[0]))
         y_k_i2.append(float(row[1]))  
-            
-with open('Electrical Conductivity.csv') as csv_file:
-    csv_reader = csv.reader(csv_file, delimiter=',')
-    for row in csv_reader:
-        conductivity = float(row[0])
         
-with open('alpha_delta.csv') as csv_file:
+with open('/home/andrej/Documents/induction-motor-design-tool/data_points/alpha_delta.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         if row[0] != '0':
             x_alpha_delta.append(float(row[0]))
             y_alpha_delta.append(float(row[1]))
          
-with open('kb.csv') as csv_file:
+with open('/home/andrej/Documents/induction-motor-design-tool/data_points/kb.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         if row[0] != '0':
             x_kb.append(float(row[0]))
             y_kb.append(float(row[1]))            
               
-with open('Diameter.csv') as csv_file:
+with open('/home/andrej/Documents/induction-motor-design-tool/data_points/Diameter.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
         if row[0] != '0':
@@ -291,7 +329,26 @@ with open('Diameter.csv') as csv_file:
             x2_D.append(float(row[3]))
             y2_D.append(float(row[4]))
 
-   
+"""
+with open('Slot_Numbers.csv') as csv_file:
+    csv_reader = csv.reader(csv_file, delimiter=',')
+    for row in csv_reader:
+        if row[0] != '0':
+            StatorSlot_1.append(flot(row[0]))
+        if row[1] != '0':
+            RotorSlot_1.append(float(row[1]))
+        if row[2] != '0':
+            RotorSlot_2.append(float(row[2]))
+        if row[3] != '0':
+            RotorSlot_3.append(float(row[3]))
+        if row[4] != '0':
+            RotorSlot_4.append(float(row[4]))        
+        if row[5] != '0':
+            RotorSlot_5.append(float(row[5]))
+
+Z_rotor_elements = []
+Z_rotor_elements.append()
+"""
 ## interpolation of plots
 
 ## interpolation of ke = f(p)
@@ -336,7 +393,7 @@ A1_plot = interp1d(x1_A, y1_A, kind = 'cubic')
 A2_plot = interp1d(x2_A, y2_A, kind = 'cubic')
 A3_plot = interp1d(x3_A, y3_A, kind = 'cubic')
 A4_plot = interp1d(x4_A, y4_A, kind = 'cubic')
-A5plot = interp1d(x5_A, y5_A, kind = 'cubic')
+A5_plot = interp1d(x5_A, y5_A, kind = 'cubic')
 
 ## interpolation of B_delta = f(tau_p)
 B1_delta_plot = interp1d(x1_B_delta, y1_B_delta, kind = 'cubic')
@@ -442,8 +499,7 @@ for i in range(cekor+1):
     a2_elements.append(1 + 2/cekor*i)
     h_12_elements.append(20 + 10/cekor*i)
     h_42_elements.append(0.4 + 0.4/cekor*i)    
-   
-    
+       
 if p == 1:
     q_elements = [3, 4, 5, 6, 7, 8]
     Z_stator_elements = [18, 24, 30, 36, 42, 48]
@@ -477,6 +533,7 @@ for i in range(17):
     
 for i in range(4):
     d_elements.append(3.50 + 0.50 * i)
+
     
 CoilPitch_elements = [1, 0.666666667, 0.8, 0.857142857, 0.833333333]
 
@@ -550,6 +607,22 @@ elif p == 6:
 n1 = (60*f) / p
 
 tau_p = (math.pi*D) / (2*p)
+ 
+if p == 1: 
+    B_delta = B1_delta_plot(tau_p) - B1_delta_plot(tau_p) * 0.07
+    A = A1_plot(tau_p) - A1_plot(tau_p) * 0.07
+elif p == 2:
+    B_delta = B2_delta_plot(tau_p) - B2_delta_plot(tau_p) * 0.07
+    A = A2_plot(tau_p) - A1_plot(tau_p) * 0.07
+elif p == 3: 
+    B_delta = B3_delta_plot(tau_p) - B3_delta_plot(tau_p) * 0.07
+    A = A3_plot(tau_p) - A1_plot(tau_p) * 0.07
+elif p == 6:
+    B_delta = B4_delta_plot(tau_p) - B4_delta_plot(tau_p) * 0.07
+    A = A4_plot(tau_p) - A1_plot(tau_p) * 0.07
+elif p == 12:
+    B_delta = B4_delta_plot(tau_p) - B4_delta_plot(tau_p) * 0.07
+    A = A5_plot(tau_p) - A1_plot(tau_p) * 0.07   
 
 with open('some.csv', "w") as file:
     writer = csv.writer(file, delimiter=',')
@@ -598,28 +671,10 @@ with open('some.csv', "w") as file:
             combinator_2 = combinator_2 + 1
             brojac = 0
             
-        counter_for_CoilPitch = 0
+        counter_for_CoilPitch = 0                   
         
-        """
-        if p == 1: 
-            B_delta = B1_delta_plot(tau_p) - B1_delta_plot(tau_p) * SpecificLoadReduction
-            A = A1_plot(tau_p) - A1_plot(tau_p) * SpecificLoadReduction
-        elif p == 2:
-                B_delta = B2_delta_plot(tau_p) - B2_delta_plot(tau_p) * SpecificLoadReduction
-                A = A2_plot(tau_p) - A1_plot(tau_p) * SpecificLoadReduction
-        elif p == 3: 
-                B_delta = B3_delta_plot(tau_p) - B3_delta_plot(tau_p) * SpecificLoadReduction
-                A = A3_plot(tau_p) - A1_plot(tau_p) * SpecificLoadReduction
-        elif p == 6:
-                B_delta = B4_delta_plot(tau_p) - B4_delta_plot(tau_p) * SpecificLoadReduction
-                A = A4_plot(tau_p) - A1_plot(tau_p) * SpecificLoadReduction
-        elif p == 12:
-                B_delta = B4_delta_plot(tau_p) - B4_delta_plot(tau_p) * SpecificLoadReduction
-                A = A5_plot(tau_p) - A1_plot(tau_p) * SpecificLoadReduction                        
-        
-        """
-        B_delta = 0.5225
-        A = 166.25
+        #B_delta = 0.5225
+        #A = 166.25
         
         """
         kb = 1.11
@@ -882,11 +937,12 @@ with open('some.csv', "w") as file:
         
         k102 = 3 * Un * U_1nf
         
+        ## Drug kanal
         k103 = (D*10 + 2 * h5) * math.pi - k12
 
-        k104 = B_delta / B_z2 * (D - 2 * delta) * math.pi
+        #k104 = B_delta / B_z2 * (D - 2 * delta) * math.pi
 
-        k105 = math.pi(2 * delta - D + 2 * h5)
+        k105 = math.pi * (2 * delta - D + 2 * h5)
                                                         
         while counter_for_CoilPitch < 5: ## As there are 5 types of Coil Pitching
 
@@ -929,27 +985,7 @@ with open('some.csv', "w") as file:
                                         """
                                         I2 = k19 * k_w1 * int(N_k1) * Z_stator / Z_rotor
                                         
-                                        g2 = g2_elements[comb1[combinator_1][4]] 
-                                        
-def RotorDimensions_Rounded():
-    ##
-    """
-    b_z2 = B_delta * t2 /  B_z2
-    """
-    b_z2 = (k104 + k104 * r / q) / Z_rotor
-    ##
-    d1 = (math.pi * (D2 - 2 * h5) - Z_rotor * b_z2) / (math.pi + Z_rotor)
-    ##
-    Sk = math.pi / 8 * (d1**2 + d2**2) + ((d1 + d2) * h1) / 2
-    d1 - d2 = 2 * h1 * math.tan(math.pi / Z_rotor)    
-
-    # 
-    #   ((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))
-    #   -((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))  
-    temp_variable = math.tan(math.pi / Z_rotor)
-    #   ((16 - pi**2*temp_variable**2)**(1/2) * (k105 + Z_rotor * k104 + Z_rotor * k104 * r / q))/((math.pi * temp_variable - 4)*(Z_rotor + math.pi))                                  
-    #   -((pi*(2*delta - D + 2*h5) + N_k1*(k104 + (k104*r)/q))/(N_k1 + pi) + ((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi)))/(2*tan(pi/N_k1))
-
+                                        g2 = g2_elements[comb1[combinator_1][4]]                                         
 
                                         b_k2 = I2 / (g2 * h_12)
                                         
@@ -1005,7 +1041,7 @@ def RotorDimensions_Rounded():
                                         temp_flag_1 = 0
                                         
                                         temp_flag_2 = 0
-                                  
+
                                         for number_of_conductors in range(1, 8):  
                                             
                                             d = math.sqrt((4 * I_1nf) / (g1 * number_of_conductors * math.pi))
@@ -1016,21 +1052,18 @@ def RotorDimensions_Rounded():
                                             Sk = int(N_k1) * k9 / number_of_conductors
                                             
                                             if StatorSlot == 'Rectangular':
-                                                SlotDimensions_Rectangular(k12, k103, r, q, Z_stator, Sk, a1, h5, temp_flat_1)   
+                                                SlotDimensions_Rectangular(k12, k103, r, q, Z_stator, Sk, a1, h5, temp_flag_1)   
                                                 
                                             elif StatorSlot == 'Trapezoidal':
-                                                SlotDimensions_Trapezoidal(k12, k45, k48, k52, k53, k54, k55, k58, r, q, Z_stator, D, Sktemp_flag_1)
-                                               
-                                                    
-                                        
+                                                SlotDimensions_Trapezoidal(k12, k45, k48, k52, k53, k54, k55, k58, r, q, Z_stator, D, Sk, temp_flag_1)
                                             
                                             if temp_flag_1 != 1:
-                                                """
-                                                b_k11 = (k45 - k12 * r / q) / Z_stator ##
-                                                b_z1 = (k12 + k12 * r / q) / Z_stator ##          
                                                 
-                                                k_1 = (-2 * k12 * r / q) / math.pi + k58 + (2 * k12 * r / q - 2 * k45) / Z_stator ##
-                                                """
+                                                #b_k11 = (k45 - k12 * r / q) / Z_stator ##
+                                                #b_z1 = (k12 + k12 * r / q) / Z_stator ##          
+                                                
+                                                #k_1 = (-2 * k12 * r / q) / math.pi + k58 + (2 * k12 * r / q - 2 * k45) / Z_stator ##
+                                                
                                                 F_delta = ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 ##                     
                                                 
                                                 F_z2 = (H_z2 * h_z2) / 3000 ## 
@@ -1050,7 +1083,7 @@ def RotorDimensions_Rounded():
                                             
                                             k_11 = (k47 - k12 * r / q * 2) / math.pi + k46 - 2 * b_k11
                                             """
-                                            k_22 = (k48 + r / q * (k52 + (k53 - 2 * k12**2 * r / q) / Z_stator) + k54 / Z_stator) / math.pi + k55 - D * b_k11 - (2 * Sk * Z_stator) / math.pi
+                                            #k_22 = (k48 + r / q * (k52 + (k53 - 2 * k12**2 * r / q) / Z_stator) + k54 / Z_stator) / math.pi + k55 - D * b_k11 - (2 * Sk * Z_stator) / math.pi
                                             
                                           
                                             """
@@ -1062,7 +1095,7 @@ def RotorDimensions_Rounded():
                                             """
                                      
                                             
-                                            h_z1 = (-k_1 + math.sqrt(k_1**2 - 4 * k_22)) / 2
+                                            #h_z1 = (-k_1 + math.sqrt(k_1**2 - 4 * k_22)) / 2
                                             
                                             if h_z1 <= 0:
                                                 break                                        
@@ -1154,8 +1187,18 @@ def RotorDimensions_Rounded():
                                                 r2_75 = 1.24 * r2_15 ##
                                                 """
                                                 h1 = h_z1 - (h5 + h6)
-                                            
-                                                lambda_k1 = (2 * h1) / (3 * (b_k11 + b_k21)) + 0.6 / b_k11 + (2 * h5) / (a1 + b_k11 + h6 / a1) ## gresno za malce
+
+                                                if StatorSlot == 'Trapezoidal':
+                                                    StatorPermeance_Trapezoidal_Single(h1, b_k11, b_k21, h5, a1, h6, k82)
+                                                elif StatorSlot == 'Rectangular':
+                                                    SlotPermeance_Rectangular_Single(h1, b_k1, h5, a1)
+
+                                                if RotorSlot == 'Trapezoidal':
+                                                    RotorPermeance_Trapezoidal(h_z1, Z_rotor, Z_stator, k82, k83, k84, k85, k_w1, N_k1)
+                                               #elif RotorSlot == 'Rectangular':
+                                                    #SlotPermeance_Circular_Closed(h_or, Ib)
+
+                                                #lambda_k1 = (2 * h1) / (3 * (b_k11 + b_k21)) + 0.6 / b_k11 + (2 * h5) / (a1 + b_k11 + h6 / a1) ## gresno za malce
                                                 """
                                                 lambda_cv1 = k72 * alpha_delta * kb * Z_stator * k_w1 * ky**2 - k73 * alpha_delta * kb * k_w1 * Z_stator * CoilPitch * ky**2 ##
                                             
@@ -1163,7 +1206,7 @@ def RotorDimensions_Rounded():
                                                 """                                    
                                                 x_sigma1 = (k78 * Z_stator**2 * ky**2 * int(N_k1)**2 - k79 * Z_stator**2 * CoilPitch * ky**2 * int(N_k1)**2 + ((k80 / (alpha_delta * kb) * Z_stator * int(N_k1)**2) / Z_rotor + k81 / (alpha_delta * kb) * Z_stator * int(N_k1)**2 + lambda_k1 * k76 / (alpha_delta * kb) * Z_stator * int(N_k1)**2) / k_w1) / 10
                                             
-                                                lambda_k2 = Z_rotor * (k82 * h_z1 - k83) / (k85 * int(N_k1) * Z_stator * k_w1) + k84 / k85
+                                                #lambda_k2 = Z_rotor * (k82 * h_z1 - k83) / (k85 * int(N_k1) * Z_stator * k_w1) + k84 / k85
                                                 """                                          
                                                 hp = 1.05 * h_z2 ##
                                             
@@ -1352,8 +1395,9 @@ def RotorDimensions_Rounded():
                                                         print("Power Factor = ", round(cos_phi,2))
                                                         print("Press ENTER to continue...")
                                                         input()
-                                            
-                                                        import main1                                                
+
+                                                        quit()
+                                                        #import EndCalculation_WriteToCSV                                                
     
                                             
     
