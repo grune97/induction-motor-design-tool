@@ -42,7 +42,7 @@ def SlotDimensions_Rectangular(k12, k103, r, q, Z_stator, Sk, a1, h5, temp_flat_
     h_z1 = Sk / b_k1 + (b_k1 - a1) * h5
     ##
     # h1 = h_z1 - h5    
-    
+
 def SlotDimensions_Trapezoidal(k12, k45, k48, k52, k53, k54, k55, k58, r, q, Z_stator, D, Sk, temp_flag_1):
     global b_z1 
     global b_k11
@@ -60,27 +60,85 @@ def SlotDimensions_Trapezoidal(k12, k45, k48, k52, k53, k54, k55, k58, r, q, Z_s
     k_22 = (k48 + r / q * (k52 + (k53 - 2 * k12**2 * r / q) / Z_stator) + k54 / Z_stator) / math.pi + k55 - D * b_k11 - (2 * Sk * Z_stator) / math.pi
     ##
     h_z1 = (-k_1 + math.sqrt(k_1**2 - 4 * k_22)) / 2    
-"""
-def RotorDimensions_Rounded():
-    ##
-    
-    b_z2 = B_delta * t2 /  B_z2
-    
-    b_z2 = (k104 + k104 * r / q) / Z_rotor
-    ##
-    d1 = (math.pi * (D2 - 2 * h5) - Z_rotor * b_z2) / (math.pi + Z_rotor)
-    ##
-    Sk = math.pi / 8 * (d1**2 + d2**2) + ((d1 + d2) * h1) / 2
-    d1 - d2 = 2 * h1 * math.tan(math.pi / Z_rotor)    
 
-    # 
-    #   ((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))
-    #   -((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))  
+def RotorDimensions_Trapezoidal(I2, g2, h_12, k22, k24, Z_rotor, k25, r, q, k_Fe, k31, a2):
+    
+    global b_k2
+    global h_z2
+    global b_z2_avg
+    global b_z2_max
+    global b_z2_min
+    global b_z2_avg
+    global B_z2_max
+    global B_z2_min
+    global B_z2_avg
+
+    b_k2 = I2 / (g2 * h_12)
+    
+    h_z2 = k22 + b_k2
+    
+    b_z2_avg = k24 / Z_rotor - b_k2 * (2 * math.pi / Z_rotor + 1)
+                                    
+    b_z2_max = k23 / Z_rotor - b_k2 * (math.pi / Z_rotor + 1)
+                                    
+    b_z2_min = k25 / Z_rotor - b_k2 * (3 * math.pi / Z_rotor + 1)                                      
+                                        
+    B_z2_max = ((1 + r / q) * B_delta * k31) / (b_z2_min * Z_rotor * k_Fe)
+                                    
+    B_z2_min = ((1 + r / q) * B_delta * k31) / (b_z2_max * Z_rotor * k_Fe)
+                                    
+    B_z2_avg = (B_z2_max + B_z2_min) / 2
+                                        
+    g2 = I2 / ((h_12 * b_k2 + 0.5 * (b_k2**2 - a2**2)) * 1.05)
+
+def RotorDimensions_Rounded(k104, k105, k106, k107, B_z2, k110, Z_rotor, N_k1, r, q, h_42):
+    global h_12
+    global d1
+    global d2
+    global h_z2
+    global g2
+    
+    ##
     temp_variable = math.tan(math.pi / Z_rotor)
-    #   ((16 - pi**2*temp_variable**2)**(1/2) * (k105 + Z_rotor * k104 + Z_rotor * k104 * r / q))/((math.pi * temp_variable - 4)*(Z_rotor + math.pi))                                  
-    #   -((pi*(2*delta - D + 2*h5) + N_k1*(k104 + (k104*r)/q))/(N_k1 + pi) + ((16 - pi^2*tan(pi/N_k1)^2)^(1/2)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi)))/(2*tan(pi/N_k1))
-"""
+    
+    # b_z2 = B_delta * t2 /  B_z2
+    
+    #  b_z2 = (k104 + k104 * r / q) / Z_rotor
+    ##
+    #d1 = (math.pi * (D2 - 2 * h5) - k104 + k104 * r / q) / (math.pi + Z_rotor)
+    d1 = (k109 + k104 * r / q) / (math.pi + Z_rotor)
+    ##
+    #Sk = math.pi / 8 * (d1**2 + d2**2) + ((d1 + d2) * h1) / 2
+    #d1 - d2 = 2 * h1 * temp_variable    
 
+    #k109 = math.pi * (2 * delta - D + 2 * h5) 
+
+    #   h1 = ((16 - math.pi**2*temp_variable)**2)**(1/2)*(2*math.pi*delta*q - math.pi*D*q + 2*math.pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(math.pi*temp_variable - 4)*(N_k1 + math.pi))
+    #   -((16 - math.pi**2**temp_variable**2)**(1/2)*(2*math.pi*delta*q - math.pi*D*q + 2*math.pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(math.pi*temp_variable - 4)*(N_k1 + math.pi))  
+
+    # Prethodnite formuli
+    # h1 = ((16 - math.pi**2 * temp_variable)**2)**(1/2) * (k106 * q - k107 * q + k108 * q + int(N_k1) * k104 * q + int(N_k1) * k104 * r) / (q * (math.pi * temp_variable - 4) * (int(N_k1) + math.pi))
+
+    # d2 = ((16 - math.pi**2*temp_variable**2)**(1/2) * (k105 + Z_rotor * k104 + Z_rotor * k104 * r / q))/((math.pi * temp_variable - 4)*(Z_rotor + math.pi))                                  
+
+    # Segasnite formuli
+    #h_12 = (((16 - math.pi**2 * temp_variable)**2)**(1/2) - math.pi - temp_variable + 4) * (k106 * q - k107 * q + k108 * q + int(N_k1) * k104 * q + int(N_k1) * k104 * r) / (2 * q * temp_variable * (math.pi * temp_variable - 4) * (int(N_k1) + math.pi))
+    h_12 = -(math.pi * temp_variable + (16 - math.pi**2 * temp_variable**2)**(1/2) - 4) * (k106 * q - k107 * q + k108 * q + int(N_k1) * k104 * q + int(N_k1) * k104 * r) / (2 * q * temp_variable * (math.pi * temp_variable - 4) * (int(N_k1) + math.pi))
+    d2 = d1 - 2 * h_12 * temp_variable
+    #d2 = -(4*(math.pi * (k105) + int(N_k1) * (k104 + (k104 * r) / q)) * (-((math.pi * temp_variable - 4) * (math.pi * temp_variable + 4)) / 16)**(1/2)) / ((math.pi * temp_variable - 4) * (N_k1 + math.pi))
+
+    h_z2 = h_12 * (1 + temp_variable) + h_42 + d1
+
+    g2 = I2 / (math.pi / 8 * (d1**2 + d2**2) + ((d1 + d2 * h_12) / 2))
+    # Negativni formuli
+    # d2 = -(4*(pi*(2*delta - D + 2*h5) + N_k1*(k104 + (k104*r)/q))*(-((pi*tan(pi/N_k1) - 4)*(pi*tan(pi/N_k1) + 4))/16)^(1/2))/((pi*tan(pi/N_k1) - 4)*(N_k1 + pi))
+    # h1 = -((pi*tan(pi/N_k1) + (16 - pi^2*tan(pi/N_k1)^2)^(1/2) - 4)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(2*q*tan(pi/N_k1)*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))
+
+    # Pozitivni formuli
+    # d2 = (4*(pi*(2*delta - D + 2*h5) + N_k1*(k104 + (k104*r)/q))*(-((pi*tan(pi/N_k1) - 4)*(pi*tan(pi/N_k1) + 4))/16)^(1/2))/((pi*tan(pi/N_k1) - 4)*(N_k1 + pi))
+    # h1 = (((16 - pi^2*tan(pi/N_k1)^2)^(1/2) - pi*tan(pi/N_k1) + 4)*(2*pi*delta*q - pi*D*q + 2*pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(2*q*tan(pi/N_k1)*(pi*tan(pi/N_k1) - 4)*(N_k1 + pi))
+
+    #   -((math.pi*(2*delta - D + 2*h5) + N_k1*(k104 + (k104*r)/q))/(N_k1 + math.pi) + ((16 - math.pi**2*temp_variable**2)**(1/2)*(2*math.pi*delta*q - math.pi*D*q + 2*math.pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(math.pi*temp_variable - 4)*(N_k1 + math.pi)))/(2*temp_variable)
 
 def conditions(eta_n, cos_phi, StartingCurrentRatio, StartingTorqueRatio, MaxTorqueRatio):
     if eta_condition == 1:
@@ -101,8 +159,8 @@ def conditions(eta_n, cos_phi, StartingCurrentRatio, StartingTorqueRatio, MaxTor
     return 1
 
 def SlotPermeance_Rectangular_Single(h1, b_k1, h5, a1):
-    global lambda_s
-    lambda_s = h1 / (3 * b_k1) + h5 / a1
+    global lambda_k1
+    lambda_k1 = h1 / (3 * b_k1) + h5 / a1
     
 def SlotPermeance_Rectangular_Double(h_s1, h_su, gamma_k, bs, hi, ho, hw, bw, h_os, b_os):
     global lambda_sk
@@ -134,15 +192,15 @@ def SlotPermeance_Circular_Open(b_or, b1, h_or):
     global lambda_r
     lambda_r = 0.66 + h_or / b_or
     
-def SlotPermeance_Round_Open(hr, b1, h_or, b_or, Ab):
-    global lambda_r
-    lambda_r = hr / (3 * b1) * (1 - (math.pi * b1**2) / (8 * Ab))**2 + 0.66 - h_or / (2 * b1) + h_or / b_or
+def SlotPermeance_Rounded_Open(h_12, h_42, d1, d2, a2):
+    return 0.66 + (2 * h_12) / (3 * (d1 + d2)) + h_42 / a2
+    #return hr / (3 * b1) * (1 - (math.pi * b1**2) / (8 * Ab))**2 + 0.66 - h_or / (2 * b1) + h_or / b_or
     
 def SlotPermeance_Circular_Closed(h_or, Ib):
     global lambda_r
     lambda_r = 0.66 + 0.3 + 1.12 * h_or * 10**3 / Ib**2
     
-def SlotPermeance_Round_Closed(hr, b1, h_or, b_or, Ab, Ib):
+def SlotPermeance_Rounded_Closed(hr, b1, h_or, b_or, Ab, Ib):
     global lambda_r
     lambda_r = hr / (3 * b1) * (1 - (math.pi * b1**2) / (8 * Ab))**2 + 0.66 - h_or / (2 * b1) + 0.3 + 1.12 * h_or * 10**3 / Ib**2
 """    
@@ -160,6 +218,18 @@ def StatorPermeance_Trapezoidal_Single(h1, b_k11, b_k21, h5, a1, h6, k82):
 def RotorPermeance_Trapezoidal(h_z1, Z_rotor, Z_stator, k82, k83, k84, k85, k_w1, N_k1):
     global lambda_k2
     lambda_k2 = Z_rotor * (k82 * h_z1 - k83) / (k85 * int(N_k1) * Z_stator * k_w1) + k84 / k85
+
+def MagneticField_Trapezoidal(B_z2_min, B_z2_max, B_z2_avg):
+    H_z2_min = H_plot(B_z2_min)
+                                    
+    H_z2_max = H_plot(B_z2_max)
+                                    
+    H_z2_avg = H_plot(B_z2_avg)
+                                    
+    return (H_z2_min + H_z2_max + 4 * H_z2_avg)/6
+
+def MagneticField_Rounded(B_z2):
+    return H_plot(B_z2)
 
 x1_A = []
 y1_A = []
@@ -443,6 +513,7 @@ g2_elements = []
 k_Cu_elements = []
 k_Fe_elements = []
 B_z1_elements = []
+B_z2_elements = []
 B_v1_elements = []
 B_v2_elements = []
 
@@ -485,6 +556,7 @@ for i in range(cekor+1):
 
 for i in range(cekor+1):
     B_z1_elements.append(1.3 + 0.4/cekor*i)
+    B_z2_elements.append(1 + 1/cekor*i)
 
 for i in range(cekor+1):
     B_v1_elements.append(1 + 0.5/cekor*i)
@@ -640,30 +712,24 @@ with open('some.csv', "w") as file:
         
         k_Cu = k_Cu_elements[comb1[combinator_1][0]]
         k_Fe = k_Fe_elements[comb1[combinator_1][1]]
-        """
-        k_Cu = 0.4
-        k_Fe = 0.95
-        """
+
         B_z1 = B_z1_elements[comb2[combinator_2][0]]
         B_v1 = B_v1_elements[comb2[combinator_2][1]]
         B_v2 = B_v2_elements[comb2[combinator_2][2]]
-        """
-        B_z1 = 1.5
-        B_v1 = 1.25
-        B_v2 = 1.4
-        """
+        if RotorSlot == 'Rounded':
+            B_z2 = B_z2_elements[comb1[combinator_2][2]] 
+
         a1 = a1_elements[comb1[combinator_1][0]]
         h5 = h5_elements[comb1[combinator_1][1]]
-        h6 = h6_elements[comb1[combinator_1][2]]
+        
+        if StatorSlot == 'Rectangular' or 'Trapezoidal':
+            h_12 = h_12_elements[comb2[combinator_2][1]]
+            if StatorSlot == 'Trapezoidal':
+                h6 = h6_elements[comb1[combinator_1][2]]
         
         a2 = a2_elements[comb1[combinator_1][5]]
-        h_12 = h_12_elements[comb2[combinator_2][1]]
         h_42 = h_42_elements[comb2[combinator_2][2]]
-        """
-        a2 = 2.5
-        h_12 = 30
-        h_42 = 0.8
-        """
+
         combinator_1 = combinator_1 + 1
         brojac = brojac + 1
         
@@ -725,13 +791,13 @@ with open('some.csv', "w") as file:
             
         k12 = (k11*10 * k4) / (B_z1 * k_Fe)
             
-        k13 = (D*10 + 2 * (h5 + h6)) * math.pi
+        #k13 = (D*10 + 2 * (h5 + h6)) * math.pi
             
-        k45 = k13 - k12
+        #k45 = k13 - k12
             
         k14 = math.pi * D*10 - k12
             
-        k15 = h5 + h6
+        #k15 = h5 + h6
             
         k16 = 10 * D
             
@@ -830,31 +896,29 @@ with open('some.csv', "w") as file:
                  
         k44 = (p * k6 * math.sqrt(3)) / (0.9 * m1 * I_1n) * 100
         
-        k46 = D - 2 * h6 + a1
+        #k46 = D - 2 * h6 + a1
         
-        k47 = k45 - k12
+        #k47 = k45 - k12
         
-        k48 = a1 * k45 - 2 * h6 * k45 + 2 * h6 * k12 - a1 * k12
+       #k48 = a1 * k45 - 2 * h6 * k45 + 2 * h6 * k12 - a1 * k12
         
-        k49 = 2 * h6 * k12
+        #k49 = 2 * h6 * k12
         
-        k50 = k45 * k12
+       # k50 = k45 * k12
         
         k51 = a1 * k12 
         
-        k52 = - 2 * k51 + 2 * k49 
+        #k52 = - 2 * k51 + 2 * k49    
         
-        k53 = 3 * k50 - k12**2
-        
-        k54 = k50 - k45**2
+        #k54 = k50 - k45**2
                 
-        k55 = D * a1 - 2 * h6 * D
+        #k55 = D * a1 - 2 * h6 * D
         
         k56 = (B_delta * (D*10 - 2 * delta) * math.pi) / k_Fe
         
-        k58 = k47 / math.pi + k46
+        #k58 = k47 / math.pi + k46
         
-        k59 = k48 / math.pi + k55 - D * k45
+       # k59 = k48 / math.pi + k55 - D * k45
         
         k60 = 1.2 * tau_p + 2
         
@@ -884,20 +948,41 @@ with open('some.csv', "w") as file:
         
         k76 = 0.158/100**3 * f * k1 /(2 * m1)
         
-        k77 = - k75 + h6 / a1
+        k82 = 50 * a2
         
+        if StatorSlot == 'Trapezoidal':
+            k77 = - k75 + h6 / a1
+            k13 = (D*10 + 2 * (h5 + h6)) * math.pi
+            k15 = h5 + h6
+            k45 = k13 - k12
+            k46 = D - 2 * h6 + a1
+            k47 = k45 - k12
+            k48 = a1 * k45 - 2 * h6 * k45 + 2 * h6 * k12 - a1 * k12
+            k49 = 2 * h6 * k12
+            k50 = k45 * k12 
+            k52 = - 2 * k51 + 2 * k49 
+            k53 = 3 * k50 - k12**2
+            k54 = k50 - k45**2
+            k55 = D * a1 - 2 * h6 * D
+            k58 = k47 / math.pi + k46
+            k59 = k48 / math.pi + k55 - D * k45
+            k81 = k76 * k77  
+            k83 = k82 * (h6 + h5)    
+        else:
+            k77 = -k75
+            k81 = k76 * k77 
+            k83 = k82 * + h5
+
+        #k53 = 3 * k50 - k12**2
+
         k78 = k76 * k72
         
         k79 = k76 * k73
         
         k80 = k76 * k74
         
-        k81 = k76 * k77
-        
-        k82 = 50 * a2
-        
-        k83 = k82 * (h6 + h5)
-        
+        #k81 = k76 * k77
+
         k84 = k21 * (93 * a2 + 150 * h_42)
         
         k85 = 150 * a2 * k21
@@ -938,11 +1023,25 @@ with open('some.csv', "w") as file:
         k102 = 3 * Un * U_1nf
         
         ## Drug kanal
-        k103 = (D*10 + 2 * h5) * math.pi - k12
+        # Rectangular Slot
+        if StatorSlot == 'Rectangular':
+            k103 = (D*10 + 2 * h5) * math.pi - k12
 
-        #k104 = B_delta / B_z2 * (D - 2 * delta) * math.pi
+        ## Round Slot
+        if RotorSlot == 'Rounded':
+            k104 = B_delta / B_z2 * (D - 2 * delta) * math.pi
 
-        k105 = math.pi * (2 * delta - D + 2 * h5)
+            k105 = math.pi * (2 * delta - D + 2 * h_42)
+
+            k106 = 2 * math.pi * delta
+        
+            k107 = math.pi * D
+        
+            k108 = 2 * math.pi * h_42
+
+            k110 = D*10 - 2 * delta
+
+            k109 = math.pi * (k110 - 2 * h_42) - k104
                                                         
         while counter_for_CoilPitch < 5: ## As there are 5 types of Coil Pitching
 
@@ -987,9 +1086,21 @@ with open('some.csv', "w") as file:
                                         
                                         g2 = g2_elements[comb1[combinator_1][4]]                                         
 
-                                        b_k2 = I2 / (g2 * h_12)
+                                        if RotorSlot == 'Rounded':
+                                            RotorDimensions_Rounded(k104, k105, k106, k107, B_z2, k110, Z_rotor, N_k1, r, q, h_42)
+                                            H_z2 = MagneticField_Rounded(B_z2)
+                                        elif RotorSlot == 'Trapezoidal':
+                                            RotorDimensions_Trapezoidal(I2, g2, h_12, k22, k24, Z_rotor, k25, r, q, k_Fe, k31, a2)
+                                            if B_z2_max > 1.8:
+                                                break
+                                            H_z2 = MagneticField_Trapezoidal(B_z2_min, B_z2_max, B_z2_avg)
                                         
-                                        g2 = I2 / ((h_12 * b_k2 + 0.5 * (b_k2**2 - a2**2)) * 1.05) ## moze da se douprosti
+                                        #if B_z2_max > 1.8 and RotorSlot == 'Trapezoidal':
+                                            #break
+                                        
+                                        #b_k2 = I2 / (g2 * h_12)
+                                        
+                                        #g2 = I2 / ((h_12 * b_k2 + 0.5 * (b_k2**2 - a2**2)) * 1.05) ## moze da se douprosti
                                         
                                         if g2 < g2_elements[0]:
                                             continue                                            
@@ -1000,14 +1111,15 @@ with open('some.csv', "w") as file:
                                         """
                                         b_k2 = k21 * k_w1 * int(N_k1) * Z_stator / Z_rotor
                                         """
+                                        """
                                         h_z2 = k22 + b_k2
-                                    
+
                                         b_z2_avg = k24 / Z_rotor - b_k2 * (2 * math.pi / Z_rotor + 1)
                                     
                                         b_z2_max = k23 / Z_rotor - b_k2 * (math.pi / Z_rotor + 1)
                                     
                                         b_z2_min = k25 / Z_rotor - b_k2 * (3 * math.pi / Z_rotor + 1)
-                                        
+
                                         if b_z2_min <= 0:
                                             break
                                         
@@ -1016,9 +1128,10 @@ with open('some.csv', "w") as file:
                                         B_z2_min = ((1 + r / q) * B_delta * k31) / (b_z2_max * Z_rotor * k_Fe)
                                     
                                         B_z2_avg = (B_z2_max + B_z2_min) / 2
-                                        
-                                        if B_z2_max > 1.8:
-                                            break
+                                        """
+
+                                        #if B_z2_max > 1.8:
+                                            #break
                                         
                                         """
                                         B_z2_max1 = (k56 + r / q * k56) / (b_z2_min * Z_rotor)
@@ -1027,7 +1140,7 @@ with open('some.csv', "w") as file:
                                         
                                         B_z2_avg1 = ((k56 + r / q * k56) / Z_rotor * (1 / b_z2_min + 1 / b_z2_max)) / 2                                                    
                                         """
-                                        
+                                        """
                                         H_z2_min = H_plot(B_z2_min)
                                     
                                         H_z2_max = H_plot(B_z2_max)
@@ -1035,7 +1148,7 @@ with open('some.csv', "w") as file:
                                         H_z2_avg = H_plot(B_z2_avg)
                                     
                                         H_z2 = (H_z2_min + H_z2_max + 4 * H_z2_avg)/6
-                                    
+                                        """
                                         H_z1 = H_plot(B_z1)
                                                                      
                                         temp_flag_1 = 0
@@ -1174,7 +1287,7 @@ with open('some.csv', "w") as file:
                                                 """
                                                 b_k21 = (k14 + math.pi * 2 * h_z1 + k12 * r / q) / Z_stator
                                             
-                                                r1_15 = Z_stator * int(N_k1) * number_of_conductors *(k63 + k64 / (alpha_delta * kb) / k_w1) 
+                                                r1_15 = Z_stator * int(N_k1) * number_of_conductors * (k63 + k64 / (alpha_delta * kb) / k_w1) 
                                             
                                                 r1_75 = 1.24 * r1_15
                                                 """
@@ -1186,15 +1299,19 @@ with open('some.csv', "w") as file:
                                             
                                                 r2_75 = 1.24 * r2_15 ##
                                                 """
-                                                h1 = h_z1 - (h5 + h6)
 
                                                 if StatorSlot == 'Trapezoidal':
-                                                    StatorPermeance_Trapezoidal_Single(h1, b_k11, b_k21, h5, a1, h6, k82)
+                                                    h1 = h_z1 - (h5 + h6)
+                                                    StatorPermeance_Trapezoidal_Single(h1, b_k11, b_k21, h_42, a1, h6, k82)
                                                 elif StatorSlot == 'Rectangular':
+                                                    h1 = h_z1 - h5
                                                     SlotPermeance_Rectangular_Single(h1, b_k1, h5, a1)
 
                                                 if RotorSlot == 'Trapezoidal':
                                                     RotorPermeance_Trapezoidal(h_z1, Z_rotor, Z_stator, k82, k83, k84, k85, k_w1, N_k1)
+                                                elif RotorSlot == 'Rounded':
+                                                    SlotPermeance_Rounded_Open(h_12, h_42, d1, d2, a2)
+
                                                #elif RotorSlot == 'Rectangular':
                                                     #SlotPermeance_Circular_Closed(h_or, Ib)
 
@@ -1396,8 +1513,7 @@ with open('some.csv', "w") as file:
                                                         print("Press ENTER to continue...")
                                                         input()
 
-                                                        quit()
-                                                        #import EndCalculation_WriteToCSV                                                
+                                                        import EndCalculation                                              
     
                                             
     
