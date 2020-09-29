@@ -1,9 +1,23 @@
+# Importing modules
+import threading
 from tkinter import *
 from tkinter import ttk
 from tkinter.ttk import *
+from mttkinter import mtTkinter
 from PIL import ImageTk, Image
 from Variable_Declaration import Variable
+import guli
+import time
 
+class Thread_main(threading.Thread):
+    def __init__(self, name):
+        threading.Thread.__init__(self)
+        self.name = name
+
+    def run(self):
+        Execute()
+
+# Default Values
 MagnetizingCurrent_Max = 30
 MagnetizingCurrent_Min = 15
 StartingToruqe_Precision = 90 
@@ -12,15 +26,14 @@ Calculation_Combinations = 5
 
 # Lists
 Material_Elements = ["M-15", "M-19", "M-22", "M-27", "M-36", "M-43", "M-45"]
-SlotType_Elements = ["Rectangular", "Trapezoidal", "Rounded", "Circular"]
+StatorSlot_Elements = ["Rectangular", "Trapezoidal", "Rounded", "Circular"]
+RotorSlot_Elements = ["Rectangular", "Trapezoidal", "Rounded", "Circular"]
 
-# Preambule
-
+# Initializing Tk
 root = Tk() 
 root.title('Induction Motor Design Tool')
 
 # Frame
-
 frame_1 = LabelFrame(root, text="Nominal Data")
 frame_1.grid(row=0, column=0, rowspan=3, sticky="snew", padx=4)
 frame_2 = LabelFrame(root, text="Ratios")
@@ -29,7 +42,7 @@ frame_3 = LabelFrame(root, text="Materials")
 frame_3.grid(row=0, column=2, rowspan=2, sticky="nsew", padx=4, pady=4)
 frame_4 = LabelFrame(root, text = "Conditions")
 frame_4.grid(row=2, column=2, sticky="nsew", padx=4)
-frame_5 = LabelFrame(root, text="Power [kW]/Torque [Nm]")
+frame_5 = LabelFrame(root, text="Power [W]/Torque [Nm]")
 frame_5.grid(row=1, column=1, sticky="snew", padx=4, pady=4)
 frame_6 = LabelFrame(root, text="Slot Type")
 frame_6.grid(row=0, column=3, rowspan=3, sticky="snew", padx=4, pady=4)
@@ -149,8 +162,8 @@ a=0
 r = IntVar()
 r.set("1")
 
-def Start():
-    Variable(Pn_Mn.get(), 
+def Execute():
+     Variable(Pn_Mn.get(), 
              Voltage_Entry.get(), 
              Frequency_Entry.get(), 
              Kp_Entry.get(), 
@@ -168,14 +181,19 @@ def Start():
              K_Mp_Box_Var.get(),
              K_Mm_Box_Var.get(),
              r.get(),
-             SlotType_Clicked.get(),
+             StatorSlot_Clicked.get(),
+             RotorSlot_Clicked.get(),
              MagnetizingCurrent_Max,
              MagnetizingCurrent_Min,
              StartingToruqe_Precision,
              MaxToruqe_Precision,
              Calculation_Combinations
              )
-    
+
+def Start():
+    a = Thread_main("GUI")
+    a.start()
+    flag = 1
 def Options():
   
     global MagnetizingCurrent_Max  
@@ -198,12 +216,12 @@ def Options():
     MagnetizingCurrent_Min_Entry.grid(row=1, column=1, pady=2, padx=4)
     MagnetizingCurrent_Min_Entry.insert(0, MagnetizingCurrent_Min)   
     
-    StartingToruqe_Precision_Label = Label(OptionsWindow, text="Starting Toruqe Deviation [%]").grid(row=2, column=0, padx=4, pady=2, sticky="w")
+    StartingToruqe_Precision_Label = Label(OptionsWindow, text="Starting Toruqe Accuracy [%]").grid(row=2, column=0, padx=4, pady=2, sticky="w")
     StartingToruqe_Precision_Entry = Entry(OptionsWindow, width=10)
     StartingToruqe_Precision_Entry.grid(row=2, column=1, pady=2, padx=4)
     StartingToruqe_Precision_Entry.insert(0, StartingToruqe_Precision)
     
-    MaxToruqe_Precision_Label = Label(OptionsWindow, text="Maximum Toruqe Deviation [%]").grid(row=3, column=0, padx=4, pady=2, sticky="w")
+    MaxToruqe_Precision_Label = Label(OptionsWindow, text="Maximum Toruqe Accuracy [%]").grid(row=3, column=0, padx=4, pady=2, sticky="w")
     MaxToruqe_Precision_Entry = Entry(OptionsWindow, width=10)
     MaxToruqe_Precision_Entry.grid(row=3, column=1, pady=2, padx=4)
     MaxToruqe_Precision_Entry.insert(0, MaxToruqe_Precision)
@@ -260,30 +278,72 @@ HelpButton = Button(root, text="Help").grid(row=4, column=0, padx=4, pady=4, sti
 
 # Progress Bar
 
+global progress 
+
 progress = Progressbar(root, orient = HORIZONTAL, 
               length = 100, mode = 'determinate')
 progress.grid(row=3, column = 0, columnspan = 3, sticky = 'nsew', padx=3, pady=4)
+"""
+timer = IntVar()
+timer.set(0)
 
+#global bar
+
+#bar = guli.GuliVariable("bar").setValue(0)
+
+def UpdateBar(bar):
+    progress['value'] = bar
+
+
+def timer_callback(*args):
+    global progress
+    global bar
+    progress['value'] = bar
+
+#time.time.trace("w", timer_callback)
+"""
 # Slot Type (frame_6)
 
-SlotType_Label = Label(frame_6, text="").pack()
-SlotType_Clicked = StringVar()
-SlotType_Clicked.set(SlotType_Elements[0])
-SlotType_Menu = OptionMenu(frame_6, SlotType_Clicked, *SlotType_Elements).pack(padx=4, pady=2)
+# Stator Slot
+StatorSlot_Label = Label(frame_6, text="Stator Slot").pack()
+StatorSlot_Clicked = StringVar()
+StatorSlot_Clicked.set(StatorSlot_Elements[0])
+StatorSlot_Menu = OptionMenu(frame_6, StatorSlot_Clicked, *StatorSlot_Elements).pack(padx=4, pady=2)
 
-SlotType_Image = ImageTk.PhotoImage(Image.open("images/Rectangular_Slot.png"))
-SlotType_Label = Label(frame_6, image=SlotType_Image)
-SlotType_Label.pack(padx=4, pady=2)
+## Rotor Slot
+RotorSlot_Label = Label(frame_6, text="Rotor Slot").pack()
+RotorSlot_Clicked = StringVar()
+RotorSlot_Clicked.set(RotorSlot_Elements[0])
+RotorSlot_Menu = OptionMenu(frame_6, RotorSlot_Clicked, *RotorSlot_Elements).pack(padx=4, pady=2)
 
-def callback(*args):
-    global SlotType_Label
-    global SlotType_Image
-    SlotType_Label.pack_forget()
-    SlotType_Image = ImageTk.PhotoImage(Image.open("images/{}".format(SlotType_Clicked.get())+"_Slot.png"))
-    SlotType_Label = Label(frame_6, image=SlotType_Image)
-    SlotType_Label.pack(padx=4, pady=2)
+Slot_Image = Image.open("images/Rectangular_Slot.png")
+Slot_Image = Slot_Image.resize((130, 135), Image.ANTIALIAS)
+Slot_Image=ImageTk.PhotoImage(Slot_Image)
+Slot_Label = Label(frame_6, image=Slot_Image)
+Slot_Label.pack(padx=4, pady=2)
 
-SlotType_Clicked.trace("w", callback)
+def stator_callback(*args):
+    global Slot_Label
+    global Slot_Image
+    Slot_Label.pack_forget()
+    Slot_Image = Image.open("images/{}".format(StatorSlot_Clicked.get())+"_Slot.png")
+    Slot_Image = Slot_Image.resize((130, 135), Image.ANTIALIAS)
+    Slot_Image=ImageTk.PhotoImage(Slot_Image)
+    Slot_Label = Label(frame_6, image=Slot_Image)
+    Slot_Label.pack(padx=4, pady=2)
+
+def rotor_callback(*args):
+    global Slot_Label
+    global Slot_Image
+    Slot_Label.pack_forget()
+    Slot_Image = Image.open("images/{}".format(RotorSlot_Clicked.get())+"_Slot.png")
+    Slot_Image = Slot_Image.resize((130, 135), Image.ANTIALIAS)
+    Slot_Image=ImageTk.PhotoImage(Slot_Image)
+    Slot_Label = Label(frame_6, image=Slot_Image)
+    Slot_Label.pack(padx=4, pady=2)
+
+StatorSlot_Clicked.trace("w", stator_callback)
+RotorSlot_Clicked.trace("w", rotor_callback)
 
 # Ouptut File (frame_7)
 
@@ -299,5 +359,15 @@ WritePDF.pack(padx=4, pady=2, anchor="w")
 
 #myButton = Button(root, text='Da', padx=100, command=Click)
 #myButton.pack()
-root.mainloop()
+
+guli.GuliVariable("bar").setValue(0)
+
+print ("NESTO")
+while 1: 
+    try:
+        progress['value'] = guli.GuliVariable("bar").get()
+    except ValueError:
+        pass
+    root.update_idletasks()
+    root.update()
 

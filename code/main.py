@@ -7,6 +7,7 @@ from scipy import interpolate
 import matplotlib.pyplot as plt
 import csv
 import math
+import guli
 #import sympy as sym
 
 from Variable_Declaration import *
@@ -91,6 +92,12 @@ def RotorDimensions_Trapezoidal(I2, g2, h_12, k22, k24, Z_rotor, k25, r, q, k_Fe
                                         
     g2 = I2 / ((h_12 * b_k2 + 0.5 * (b_k2**2 - a2**2)) * 1.05)
 
+    # g2 = k24 / (k21 + k22**2 * k_w1 * N_k1 * Z_stator / Z_rotor - k23 / (k_w1 * N_k1 * Z_stator / Z_rotor)) 
+    # k20 = k19 / (h_12 * g2)
+    # k21 = k20 * k20
+    # k22 = 0.5 * k20
+    # k23 = 0.5 * a2**2
+    # k24 = 1.05 * k19
 def RotorDimensions_Rounded(k104, k105, k106, k107, B_z2, k110, Z_rotor, N_k1, r, q, h_42):
     global h_12
     global d1
@@ -140,6 +147,20 @@ def RotorDimensions_Rounded(k104, k105, k106, k107, B_z2, k110, Z_rotor, N_k1, r
 
     #   -((math.pi*(2*delta - D + 2*h5) + N_k1*(k104 + (k104*r)/q))/(N_k1 + math.pi) + ((16 - math.pi**2*temp_variable**2)**(1/2)*(2*math.pi*delta*q - math.pi*D*q + 2*math.pi*h5*q + N_k1*k104*q + N_k1*k104*r))/(q*(math.pi*temp_variable - 4)*(N_k1 + math.pi)))/(2*temp_variable)
 
+def RotorDimensions_Circular(k105, k106, I2, g2, a2, Z_rotor, r, q):
+    global b_k2
+    global h_z2
+    global B_z2_min
+    global B_z2_max
+
+    b_k2 = 2 * math.sqrt(I2 / (g2 * math.pi))
+
+    h_z2 = b_k2 + a2
+
+    B_z2_min = k105 * (1 + r / q) / (k106 - k_Fe * Z_rotor * a2)
+
+    B_z2_max = k105 * (1 + r / q) / (k106 - k_Fe * Z_rotor * (b_k2 - a2))
+
 def conditions(eta_n, cos_phi, StartingCurrentRatio, StartingTorqueRatio, MaxTorqueRatio):
     if eta_condition == 1:
         if eta < eta_n:
@@ -188,9 +209,9 @@ def SlotPermeance_Trapezoidal_Double(hs, b1, b2, CoilPitch, h_os, b_os, ho, bo, 
     global lambda_s
     lambda_s = (2 * hs * K1) / (3 * (b1 + b2)) + (ho / bo + ho / b1 + (3 * hw) / (b1 + 2 * b_os)) * K2
                                                   
-def SlotPermeance_Circular_Open(b_or, b1, h_or):
-    global lambda_r
-    lambda_r = 0.66 + h_or / b_or
+def SlotPermeance_Circular_Open(a2, h_42):
+    global lambda_k2
+    lambda_k2 = 0.66 + h_42 / a2
     
 def SlotPermeance_Rounded_Open(h_12, h_42, d1, d2, a2):
     return 0.66 + (2 * h_12) / (3 * (d1 + d2)) + h_42 / a2
@@ -230,6 +251,14 @@ def MagneticField_Trapezoidal(B_z2_min, B_z2_max, B_z2_avg):
 
 def MagneticField_Rounded(B_z2):
     return H_plot(B_z2)
+
+def MagneticField_Circular(B_z2_min, B_z2_max): 
+    global H_z2_min
+    global H_z2_max
+
+    H_z2_min = H_plot(B_z2_min)
+    
+    H_z2_max = H_plot(B_z2_max)
 
 x1_A = []
 y1_A = []
@@ -707,25 +736,37 @@ with open('some.csv', "w") as file:
     SpecificLoadReduction = 0.07
     
     while combinator_1 < len(comb1)-1:
-        #UpdateBar(combinator_1 / len(comb1) * 100)
+        try:
+            guli.GuliVariable("bar").setValue(combinator_1 / len(comb1) * 100)
+        except ValueError:
+            pass
+
         print(combinator_1)
-        
+        #UpdateBar(combinator_1)
+
         k_Cu = k_Cu_elements[comb1[combinator_1][0]]
         k_Fe = k_Fe_elements[comb1[combinator_1][1]]
-
+        """
+        k_Cu = 0.35 
+        k_Fe = 0.9
+        """
         B_z1 = B_z1_elements[comb2[combinator_2][0]]
         B_v1 = B_v1_elements[comb2[combinator_2][1]]
         B_v2 = B_v2_elements[comb2[combinator_2][2]]
         if RotorSlot == 'Rounded':
             B_z2 = B_z2_elements[comb1[combinator_2][2]] 
-
+        """
+        B_z1 = 1.3
+        B_v1 = 1
+        B_v2 = 1
+        """
         a1 = a1_elements[comb1[combinator_1][0]]
         h5 = h5_elements[comb1[combinator_1][1]]
         
-        if StatorSlot == 'Rectangular' or 'Trapezoidal':
+        if RotorSlot == 'Rectangular' or 'Trapezoidal':
             h_12 = h_12_elements[comb2[combinator_2][1]]
-            if StatorSlot == 'Trapezoidal':
-                h6 = h6_elements[comb1[combinator_1][2]]
+        if StatorSlot == 'Trapezoidal':
+            h6 = h6_elements[comb1[combinator_1][2]]
         
         a2 = a2_elements[comb1[combinator_1][5]]
         h_42 = h_42_elements[comb2[combinator_2][2]]
@@ -1042,7 +1083,15 @@ with open('some.csv', "w") as file:
             k110 = D*10 - 2 * delta
 
             k109 = math.pi * (k110 - 2 * h_42) - k104
-                                                        
+
+        ## Circular Slot
+        if RotorSlot == 'Circular':
+            k104 = (D*10 - 2 * delta) * math.pi    
+
+            k105 = B_delta * k104
+
+            k106 = k104 * k_Fe
+
         while counter_for_CoilPitch < 5: ## As there are 5 types of Coil Pitching
 
                             CoilPitch = CoilPitch_elements[counter_for_CoilPitch]
@@ -1093,8 +1142,12 @@ with open('some.csv', "w") as file:
                                             RotorDimensions_Trapezoidal(I2, g2, h_12, k22, k24, Z_rotor, k25, r, q, k_Fe, k31, a2)
                                             if B_z2_max > 1.8:
                                                 break
-                                            H_z2 = MagneticField_Trapezoidal(B_z2_min, B_z2_max, B_z2_avg)
-                                        
+                                            H_z2 = MagneticField_Trapezoidal(B_z2_min, B_z2_max, B_z2_avg)                                      
+                                        elif RotorSlot == 'Circular':
+                                            RotorDimensions_Circular(k105, k106, I2, g2, a2, Z_rotor, r, q)
+                                            if B_z2_max > 1.8:
+                                                break
+                                            MagneticField_Circular(B_z2_min, B_z2_max)
                                         #if B_z2_max > 1.8 and RotorSlot == 'Trapezoidal':
                                             #break
                                         
@@ -1179,7 +1232,10 @@ with open('some.csv', "w") as file:
                                                 
                                                 F_delta = ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 ##                     
                                                 
-                                                F_z2 = (H_z2 * h_z2) / 3000 ## 
+                                                if RotorSlot == 'Circular':
+                                                    F_z2 = 2 * (h_42 * H_z2_min + b_k2 * H_z2_max) / 1000
+                                                else:
+                                                    F_z2 = (H_z2 * h_z2) / 3000 ## 
                                                 
                                                 temp_flag_1 = 1
                                                 
@@ -1220,9 +1276,9 @@ with open('some.csv', "w") as file:
                                             D11 = k16 + 2 * k17 * alpha_delta + 2 * h_z1 + 2 * k17 * alpha_delta * r / q                                                     
                                             """
                                             
-                                            F_delta = ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 ##
+                                            #F_delta = ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 ##
                                             
-                                            F_z2 = (H_z2 * h_z2) / 3000 ##
+                                            #F_z2 = (H_z2 * h_z2) / 3000 ##
                                             
                                             """
                                             F_z1 = (H_z1 * h_z1) / 500 
@@ -1285,7 +1341,7 @@ with open('some.csv', "w") as file:
                                                 """
                                                 b_k11 = (k45 - k12 * r / q) / Z_stator ##
                                                 """
-                                                b_k21 = (k14 + math.pi * 2 * h_z1 + k12 * r / q) / Z_stator
+                                                #b_k21 = (k14 + math.pi * 2 * h_z1 + k12 * r / q) / Z_stator
                                             
                                                 r1_15 = Z_stator * int(N_k1) * number_of_conductors * (k63 + k64 / (alpha_delta * kb) / k_w1) 
                                             
@@ -1302,6 +1358,7 @@ with open('some.csv', "w") as file:
 
                                                 if StatorSlot == 'Trapezoidal':
                                                     h1 = h_z1 - (h5 + h6)
+                                                    b_k21 = (k14 + math.pi * 2 * h_z1 + k12 * r / q) / Z_stator
                                                     StatorPermeance_Trapezoidal_Single(h1, b_k11, b_k21, h_42, a1, h6, k82)
                                                 elif StatorSlot == 'Rectangular':
                                                     h1 = h_z1 - h5
@@ -1311,6 +1368,9 @@ with open('some.csv', "w") as file:
                                                     RotorPermeance_Trapezoidal(h_z1, Z_rotor, Z_stator, k82, k83, k84, k85, k_w1, N_k1)
                                                 elif RotorSlot == 'Rounded':
                                                     SlotPermeance_Rounded_Open(h_12, h_42, d1, d2, a2)
+                                                elif RotorSlot == 'Circular':
+                                                    SlotPermeance_Circular_Open(a2, h_42)
+
 
                                                #elif RotorSlot == 'Rectangular':
                                                     #SlotPermeance_Circular_Closed(h_or, Ib)
@@ -1322,7 +1382,7 @@ with open('some.csv', "w") as file:
                                                 lambda_d1 = k74 / Z_rotor - k75 ##
                                                 """                                    
                                                 x_sigma1 = (k78 * Z_stator**2 * ky**2 * int(N_k1)**2 - k79 * Z_stator**2 * CoilPitch * ky**2 * int(N_k1)**2 + ((k80 / (alpha_delta * kb) * Z_stator * int(N_k1)**2) / Z_rotor + k81 / (alpha_delta * kb) * Z_stator * int(N_k1)**2 + lambda_k1 * k76 / (alpha_delta * kb) * Z_stator * int(N_k1)**2) / k_w1) / 10
-                                            
+                                                k76 = 0.158/100**3 * f * k1 /(2 * m1)
                                                 #lambda_k2 = Z_rotor * (k82 * h_z1 - k83) / (k85 * int(N_k1) * Z_stator * k_w1) + k84 / k85
                                                 """                                          
                                                 hp = 1.05 * h_z2 ##
@@ -1339,8 +1399,8 @@ with open('some.csv', "w") as file:
                                                 """
                                                 P_Fe = rm * m1 * i0_mi_percentage**2 * I_1n**2/ (3 * 100**2)
                                                 """
-                                                P_Fe = 15
-                                                P_meh = 15
+                                                P_Fe = 30
+                                                P_meh = 40
                                                 ##
                                             
                                                 sigma1 = 1 + x_sigma1 / xm                                             
@@ -1476,17 +1536,17 @@ with open('some.csv', "w") as file:
                                                     MaxTorqueRatio = M_max / Mn
                                             
                                                     """
-                                                                                                    StartingTorqueRatio_array.append(StartingTorqueRatio)
-                                                                                                    MaxTorqueRatio_array.append(MaxTorqueRatio)
-                                                                                                    StartingCurrentRatio_array.append(StartingCurrentRatio)
+                                                    StartingTorqueRatio_array.append(StartingTorqueRatio)
+                                                    MaxTorqueRatio_array.append(MaxTorqueRatio)
+                                                    StartingCurrentRatio_array.append(StartingCurrentRatio)
                                             
-                                                                                                    STR = np.asarray(StartingTorqueRatio_array)
-                                                                                                    MTR = np.asarray(MaxTorqueRatio_array)
-                                                                                                    SCR = np.asarray(StartingCurrentRatio_array)
-                                                                                                    np.savetxt("Starting Torque Ratio.csv", STR, delimiter=",")
-                                                                                                    np.savetxt("Max Torque Ratio.csv", MTR, delimiter=",")
-                                                                                                    np.savetxt("Starting Current Ratio.csv", SCR, delimiter=",")
-                                                                                                    """
+                                                    STR = np.asarray(StartingTorqueRatio_array)
+                                                    MTR = np.asarray(MaxTorqueRatio_array)
+                                                    SCR = np.asarray(StartingCurrentRatio_array)
+                                                    np.savetxt("Starting Torque Ratio.csv", STR, delimiter=",")
+                                                    np.savetxt("Max Torque Ratio.csv", MTR, delimiter=",")
+                                                    np.savetxt("Starting Current Ratio.csv", SCR, delimiter=",")
+                                                    """
                                                     """
                                                                                                     if StartingTorqueRatio > k_Mp * 0.9 and StartingTorqueRatio < k_Mp * 1.1:
                                                                                                         if MaxTorqueRatio > k_Mm * 0.9 and MaxTorqueRatio < k_Mm * 1.1:

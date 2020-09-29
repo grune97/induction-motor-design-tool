@@ -7,10 +7,11 @@ from scipy import interpolate
 import matplotlib.pyplot as plt
 import csv
 import math
-import sympy as sym
+#import sympy as sym
 
 from main import *
 
+"""
 def RotorDimensions_Rounded():
     ##
     b_z2 = B_delta * t2 /  B_z2
@@ -31,7 +32,7 @@ def RotorDimensions_Circular():
     h_z2 = b_k2 + h5
     ##
     b_z2 = b_k2**2 - math.pi * b_k2 / 4
-    
+ """   
 
     
 
@@ -236,13 +237,13 @@ hp = 1.05 * h_z2
 bp = Sp / hp
 
 ##
-"""
+
 h_v2 = Phi_delta / (2 * l_delta/1000 * B_v2 * k_Fe) * 1000
-"""
+
 ##
-"""
+
 D_22 = (D2 - 2 * (h_z2 + h_v2) + 0.4 * D*10) / 2
-"""
+
 ## Tuka treba da stoi izborot na kanalot
 
 S_Cu1 = I_1nf / (g1 * number_of_conductors)
@@ -350,17 +351,17 @@ H_v1 = H_plot(B_v1)
 Xi_v1 = Xi_plot(B_v1)
 """
 l_v1 = ((D_11 - h_v1) * math.pi) / (2 * p)
-"""
+
 F_v1 = Xi_v1 * H_v1 * l_v1/1000
-"""
+
 ##
 """
 H_z1 = H_plot(B_z1)
 """
 l_z1 = h_z1
-"""
+
 F_z1 = 2 * H_z1 * l_z1/1000
-"""
+
 ##
 k_delta1 = t1 / (t1 - ((a1 / delta)**2 * delta) / (5 + a1 / delta))
 k_delta2 = t2 / (t2 - ((a2 / delta)**2 * delta) / (5 + a2 / delta))
@@ -392,6 +393,7 @@ F_z2 = 2 * H_z2 * l_z2/1000
 H_v2 = H_plot(B_v2)
 Xi_v2 = Xi_plot(B_v2)
 """
+
 l_v2 = (D_22 + h_v2) / (2 * p)
 F_v2 = Xi_v2 * H_v2 * l_v2/1000
 
@@ -557,9 +559,10 @@ for s in range(100):
     I_r1_s.append(I00 * math.sqrt(1 - cos_phi00**2) + I2_s[s] / sigma_1 * math.sqrt(1 - cos_ksi_s[s]**2))
     I1_s.append(math.sqrt(I_a1_s[s]**2 + I_r1_s[s]**2))
     cos_phi_1_s.append(I_a1_s[s] / I1_s[s])
-    P1_s.append(m1 * U_1nf * I1_s[s] * I_a1_s[s])
+    # P1_s.append(m1 * U_1nf * I1_s[s] * I_a1_s[s])
+    P1_s.append(3 * U_1nf * I_a1_s[s])
     P_Cu_1_s.append(3 * r1_75 * I1_s[s]**2)
-    P_Cu_2_s.append(3 * r2_75 * I2_s[s]**2)
+    P_Cu_2_s.append(3 * r2_75 * k * I2_s[s]**2)
     P0 = P_Fe + P_meh
     P_extra_s.append(0.005 * P1_s[s])
     P_gamma_s.append(P_Cu_1_s[s] + P_Cu_2_s[s] + P_extra_s[s] + P0)
@@ -567,7 +570,7 @@ for s in range(100):
     P2_s.append(P1_s[s] - P_gamma_s[s])
     n_s.append(n1 * (1 - s/100))
     
-    M_em_s.append(9.55 * P_Cu_2_s[s] / (s+1/100 * n1))
+    M_em_s.append(9.55 * P_Cu_2_s[s] / ((s+1)/100 * n1))
     M2_s.append(9.55 * P2_s[s] / n_s[s])
     M0_s.append(9.55 * (P_meh + P_extra_s[s]) / n_s[s])
     
@@ -575,5 +578,5 @@ for s in range(100):
 
 ## 
 input("The motor has been designed, press ENTER to exit.")
-import nesto
+import csv_write
 

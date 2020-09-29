@@ -17,6 +17,7 @@ def Variable(Pn_Mn,
              K_Mm_Box,
              r,
              StatorSlot_Clicked,
+             RotorSlot_Clicked,
              MagnetizingCurrent_Max_Entry,
              MagnetizingCurrent_Min_Label,
              StartingToruqe_Precision_Entry,
@@ -49,6 +50,7 @@ def Variable(Pn_Mn,
     global kp_condition
 
     global StatorSlot
+    global RotorSlot
     
     global MagnetizingCurrent_max
     global MagnetizingCurrent_min   
@@ -80,7 +82,8 @@ def Variable(Pn_Mn,
         k_Mm_condition = float(K_Mm_Box) 
 
         StatorSlot = StatorSlot_Clicked
-        
+        RotorSlot = RotorSlot_Clicked
+
         MagnetizingCurrent_max = float(MagnetizingCurrent_Max_Entry)
         MagnetizingCurrent_min = float(MagnetizingCurrent_Min_Label)
         StartingToruqe_precision = float(StartingToruqe_Precision_Entry)
@@ -98,6 +101,3 @@ def Variable(Pn_Mn,
             
     except ValueError:
         print("Error, press Enter to continue...")
-
-
-
