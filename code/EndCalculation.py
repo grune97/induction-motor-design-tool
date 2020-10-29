@@ -577,6 +577,6 @@ for s in range(100):
 ## 
 
 ## 
-input("The motor has been designed, press ENTER to exit.")
-import csv_write
+#input("The motor has been designed, press ENTER to exit.")
+import csv_write_temp
 

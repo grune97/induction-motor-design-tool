@@ -1,15 +1,14 @@
 import itertools
-import scipy
 import numpy as np
-import scipy as sp
 from scipy.interpolate import interp1d
-from scipy import interpolate
+#from scipy import interpolate
 import matplotlib.pyplot as plt
 import csv
 import math
 import guli
-#import sympy as sym
+import os
 
+#import sympy as sym
 from Variable_Declaration import *
 
 """
@@ -300,6 +299,9 @@ x2_P_meh = []
 y2_P_meh = []
 x3_P_meh = []
 y3_P_meh = []
+x4_P_meh = []
+y4_P_meh = []
+
 
 x1_D = []
 y1_D = []
@@ -376,6 +378,9 @@ with open('/home/andrej/Documents/induction-motor-design-tool/data_points/Mechan
         if row[6] != '0':
             x3_P_meh.append(float(row[6]))
             y3_P_meh.append(float(row[7]))
+        if row[9] != '0':
+            x4_P_meh.append(float(row[9]))
+            y4_P_meh.append(float(row[10]))
      
 with open('/home/andrej/Documents/induction-motor-design-tool/data_points/Xi Data Points.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
@@ -504,6 +509,7 @@ B4_delta_plot = interp1d(x4_B_delta, y4_B_delta, kind = 'cubic')
 P1_meh_plot = interp1d(x1_P_meh, y1_P_meh, kind = 'cubic')
 P2_meh_plot = interp1d(x2_P_meh, y2_P_meh, kind = 'cubic')
 P3_meh_plot = interp1d(x3_P_meh, y3_P_meh, kind = 'cubic')
+P4_meh_plot = interp1d(x4_P_meh, y4_P_meh, kind = 'cubic')
 
 ## interpolation of H_delta = f(B_delta)
 H_plot = interp1d(x_M22_Steel, y_M22_Steel, kind = 'cubic')
@@ -669,7 +675,7 @@ StartingCurrentRatio_array = []
 
 comb1 = list(itertools.product([0, 1, 2, 3, 4, 5], repeat=6))
 comb2 = list(itertools.product([0, 1, 2, 3, 4, 5], repeat=3))
-P_meh = 15
+#P_meh = 15
 
 combinator_2 = 0
 brojac = 0
@@ -704,6 +710,15 @@ elif p == 5:
 elif p == 6:
     D = D_p6_plot(P_em)
 """
+
+if p == 4: ##
+    P_meh = P1_meh_plot(D*10) ##
+elif p == 3:
+    P_meh = P2_meh_plot(D*10) ##
+elif p == 2:
+    P_meh = P3_meh_plot(D*10) ##   
+elif p == 1:
+    P_meh = P4_meh_plot(D*10) ##
 
 n1 = (60*f) / p
 
@@ -1094,488 +1109,509 @@ with open('some.csv', "w") as file:
 
         while counter_for_CoilPitch < 5: ## As there are 5 types of Coil Pitching
 
-                            CoilPitch = CoilPitch_elements[counter_for_CoilPitch]
-                            counter_for_CoilPitch = counter_for_CoilPitch + 1
-                            counter_for_Z_stator = 0
-                            
-                            ##
-                            ky = math.sin(CoilPitch * math.pi / 2)
+            if CoilPitch_Flag == 0: 
+                CoilPitch = CoilPitch_elements[counter_for_CoilPitch]
+                counter_for_CoilPitch = counter_for_CoilPitch + 1
+            else:
+                counter_for_CoilPitch = 5
 
-                            while counter_for_Z_stator < len(Z_stator_elements):
+            counter_for_Z_stator = 0
+            
+            ##
+            ky = math.sin(CoilPitch * math.pi / 2)
 
-                                Z_stator = Z_stator_elements[counter_for_Z_stator]
-                                counter_for_Z_stator = counter_for_Z_stator + 1
-                                counter_for_Z_rotor = 0       
-                                
-                                ##
-                                k_p1 = (math.sin(math.radians(Z_stator / (k377) * (k366 / Z_stator) / 2))) / (Z_stator / (k377) * math.sin(math.radians((k366 / Z_stator) / 2))) 
-                                k_w1 = k_p1 * ky
-   
-                                counter_for_Z_rotor = 0
-                                    
-                                N_k1 = (k3 * int(k43)) / Z_stator
-                                
-                                q = int(N_k1)
-                                r = math.fabs(N_k1 - int(N_k1))
-                                
-                                """
-                                b_z1 = (k12 + k12 * r / q) / Z_stator
-                                
-                                b_k11 = (k45 - k12 * r / q) / Z_stator
-                                """
-                                                     
-                                while counter_for_Z_rotor < len(Z_rotor_elements[counter_for_Z_stator-1]):
-                                                                                        
-                                        Z_rotor = Z_rotor_elements[counter_for_Z_stator-1][counter_for_Z_rotor]
-                                        counter_for_Z_rotor = counter_for_Z_rotor + 1
-                                        """
-                                        D2 = D*10 - 2 * delta
-                                        """
-                                        I2 = k19 * k_w1 * int(N_k1) * Z_stator / Z_rotor
-                                        
-                                        g2 = g2_elements[comb1[combinator_1][4]]                                         
+            while counter_for_Z_stator < len(Z_stator_elements):
 
-                                        if RotorSlot == 'Rounded':
-                                            RotorDimensions_Rounded(k104, k105, k106, k107, B_z2, k110, Z_rotor, N_k1, r, q, h_42)
-                                            H_z2 = MagneticField_Rounded(B_z2)
-                                        elif RotorSlot == 'Trapezoidal':
-                                            RotorDimensions_Trapezoidal(I2, g2, h_12, k22, k24, Z_rotor, k25, r, q, k_Fe, k31, a2)
-                                            if B_z2_max > 1.8:
-                                                break
-                                            H_z2 = MagneticField_Trapezoidal(B_z2_min, B_z2_max, B_z2_avg)                                      
-                                        elif RotorSlot == 'Circular':
-                                            RotorDimensions_Circular(k105, k106, I2, g2, a2, Z_rotor, r, q)
-                                            if B_z2_max > 1.8:
-                                                break
-                                            MagneticField_Circular(B_z2_min, B_z2_max)
-                                        #if B_z2_max > 1.8 and RotorSlot == 'Trapezoidal':
-                                            #break
-                                        
-                                        #b_k2 = I2 / (g2 * h_12)
-                                        
-                                        #g2 = I2 / ((h_12 * b_k2 + 0.5 * (b_k2**2 - a2**2)) * 1.05) ## moze da se douprosti
-                                        
-                                        if g2 < g2_elements[0]:
-                                            continue                                            
-                                        
-                                        Ip = I2 / (2 * math.sin(math.radians(k366 / Z_rotor / 2)))
-                                        
-                                        Sp = k19 / 1.6 * (k_w1 * int(N_k1)) / (math.sin(math.radians(k366 / Z_rotor / 2)) * g2) * Z_stator / Z_rotor
-                                        """
-                                        b_k2 = k21 * k_w1 * int(N_k1) * Z_stator / Z_rotor
-                                        """
-                                        """
-                                        h_z2 = k22 + b_k2
+                Z_stator = Z_stator_elements[counter_for_Z_stator]
+                counter_for_Z_stator = counter_for_Z_stator + 1
+                counter_for_Z_rotor = 0       
+                
+                ##
+                k_p1 = (math.sin(math.radians(Z_stator / (k377) * (k366 / Z_stator) / 2))) / (Z_stator / (k377) * math.sin(math.radians((k366 / Z_stator) / 2))) 
+                k_w1 = k_p1 * ky
 
-                                        b_z2_avg = k24 / Z_rotor - b_k2 * (2 * math.pi / Z_rotor + 1)
-                                    
-                                        b_z2_max = k23 / Z_rotor - b_k2 * (math.pi / Z_rotor + 1)
-                                    
-                                        b_z2_min = k25 / Z_rotor - b_k2 * (3 * math.pi / Z_rotor + 1)
-
-                                        if b_z2_min <= 0:
-                                            break
+                counter_for_Z_rotor = 0
+                    
+                N_k1 = (k3 * int(k43)) / Z_stator
+                
+                q = int(N_k1)
+                r = math.fabs(N_k1 - int(N_k1))
+                
+                """
+                b_z1 = (k12 + k12 * r / q) / Z_stator
+                
+                b_k11 = (k45 - k12 * r / q) / Z_stator
+                """
                                         
-                                        B_z2_max = ((1 + r / q) * B_delta * k31) / (b_z2_min * Z_rotor * k_Fe)
-                                    
-                                        B_z2_min = ((1 + r / q) * B_delta * k31) / (b_z2_max * Z_rotor * k_Fe)
-                                    
-                                        B_z2_avg = (B_z2_max + B_z2_min) / 2
-                                        """
-
-                                        #if B_z2_max > 1.8:
-                                            #break
-                                        
-                                        """
-                                        B_z2_max1 = (k56 + r / q * k56) / (b_z2_min * Z_rotor)
-                                        
-                                        B_z2_min1 = (k56 + r / q * k56) / (b_z2_max * Z_rotor)
-                                        
-                                        B_z2_avg1 = ((k56 + r / q * k56) / Z_rotor * (1 / b_z2_min + 1 / b_z2_max)) / 2                                                    
-                                        """
-                                        """
-                                        H_z2_min = H_plot(B_z2_min)
-                                    
-                                        H_z2_max = H_plot(B_z2_max)
-                                    
-                                        H_z2_avg = H_plot(B_z2_avg)
-                                    
-                                        H_z2 = (H_z2_min + H_z2_max + 4 * H_z2_avg)/6
-                                        """
-                                        H_z1 = H_plot(B_z1)
-                                                                     
-                                        temp_flag_1 = 0
-                                        
-                                        temp_flag_2 = 0
-
-                                        for number_of_conductors in range(1, 8):  
-                                            
-                                            d = math.sqrt((4 * I_1nf) / (g1 * number_of_conductors * math.pi))
-                                            
-                                            if d < 0.05:
-                                                break
-                                            
-                                            Sk = int(N_k1) * k9 / number_of_conductors
-                                            
-                                            if StatorSlot == 'Rectangular':
-                                                SlotDimensions_Rectangular(k12, k103, r, q, Z_stator, Sk, a1, h5, temp_flag_1)   
-                                                
-                                            elif StatorSlot == 'Trapezoidal':
-                                                SlotDimensions_Trapezoidal(k12, k45, k48, k52, k53, k54, k55, k58, r, q, Z_stator, D, Sk, temp_flag_1)
-                                            
-                                            if temp_flag_1 != 1:
-                                                
-                                                #b_k11 = (k45 - k12 * r / q) / Z_stator ##
-                                                #b_z1 = (k12 + k12 * r / q) / Z_stator ##          
-                                                
-                                                #k_1 = (-2 * k12 * r / q) / math.pi + k58 + (2 * k12 * r / q - 2 * k45) / Z_stator ##
-                                                
-                                                F_delta = ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 ##                     
-                                                
-                                                if RotorSlot == 'Circular':
-                                                    F_z2 = 2 * (h_42 * H_z2_min + b_k2 * H_z2_max) / 1000
-                                                else:
-                                                    F_z2 = (H_z2 * h_z2) / 3000 ## 
-                                                
-                                                temp_flag_1 = 1
-                                                
-                                            if F_delta <= 0:
-                                                break                                                
-                                            """
-                                            b_k11 = (k45 - k12 * r / q) / Z_stator ##
-                                            b_z1 = (k12 + k12 * r / q) / Z_stator ##                                                
-                                            """
-                                            """
-                                            k_111 = (Z_stator * b_k11) / math.pi + D - 2 * h6 - 2 * b_k11 + a1 - (Z_stator * b_z1) / math.pi 
-                                            k_222 = (Z_stator * b_k11 * a1) / math.pi - (Z_stator * b_k11 * 2 * h6) / math.pi - (Z_stator * b_k11*b_k11) / math.pi - (2 * Sk * Z_stator) / math.pi - 2 * D * h6 - D * b_k11 + D * a1 + (Z_stator * b_z1 * 2 * h6) / math.pi + (Z_stator * b_z1 * b_k11) / math.pi - (Z_stator * b_z1 * a1) / math.pi
-                                            
-                                            
-                                            k_11 = (k47 - k12 * r / q * 2) / math.pi + k46 - 2 * b_k11
-                                            """
-                                            #k_22 = (k48 + r / q * (k52 + (k53 - 2 * k12**2 * r / q) / Z_stator) + k54 / Z_stator) / math.pi + k55 - D * b_k11 - (2 * Sk * Z_stator) / math.pi
-                                            
-                                          
-                                            """
-                                            k_1 = (-2 * k12 * r / q) / math.pi + k58 + (2 * k12 * r / q - 2 * k45) / Z_stator ##
-                                            """
-                                            
-                                            """
-                                            k_2 = (r / q * (k52 + (k53 - 2 * k12**2 * r / q) / Z_stator) + k54 / Z_stator) / math.pi + k59 + D * k12 * r / q - (2 * Sk * Z_stator) / math.pi
-                                            """
-                                     
-                                            
-                                            #h_z1 = (-k_1 + math.sqrt(k_1**2 - 4 * k_22)) / 2
-                                            
-                                            if h_z1 <= 0:
-                                                break                                        
-                                            """
-                                            b_k21 = k14 / Z_stator + (math.pi * 2 * h_z1) / Z_stator + (k12 * r / q) / Z_stator  
-                                        
-                                            h_v1 = k17 * alpha_delta * (1 + r / q)
-                                        
-                                            D11 = k16 + 2 * k17 * alpha_delta + 2 * h_z1 + 2 * k17 * alpha_delta * r / q                                                     
-                                            """
-                                            
-                                            #F_delta = ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 ##
-                                            
-                                            #F_z2 = (H_z2 * h_z2) / 3000 ##
-                                            
-                                            """
-                                            F_z1 = (H_z1 * h_z1) / 500 
-                                            
-                                            F_v1 = (Xi_v1 * H_v1 * math.pi / (2 * p) * (k16 + 2 * k17 * alpha_delta - k26 * alpha_delta * 10**6)) / 1000 + k38 + k40 * (2 * h_z1 + k17 * alpha_delta * r / q)
-                                            
-                                            Fv = (Xi_v1 * H_v1 * math.pi / (2 * p) * (k16 + 2 * k17 * alpha_delta - k26 * alpha_delta * 10**6)) / 1000 + k38 + k40 * (2 * h_z1 + k17 * alpha_delta * r / q) + ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 + (H_z1 * h_z1) / 500  - k42 * b_k2 + (H_z2 * h_z2) / 3000
-                                            """                                        
-                                            
-                                            alpha_delta = 0.64
-                                            
-                                            kb = 1.11
-                                            
-                                            for counter in range(1,3):
-                                                """
-                                                h_v2 = k26 * alpha_delta * (1 + r / q) * 10**6
-                                            
-                                                D_22 = (D*10 - 2 * delta - 2 * k26 * alpha_delta * 10**6 - 2 * k22 + 0.4 * D*10 - 2 * 10**6 * k26 * alpha_delta * r / q - 2 * b_k2) / 2 
-                                                """    
-                                                Fv = (Xi_v1 * H_v1 * math.pi / (2 * p) * (k16 + 2 * k17 * alpha_delta - k26 * alpha_delta * 10**6)) / 1000 + k38 + k40 * (2 * h_z1 + k17 * alpha_delta * r / q) + (H_z1 * h_z1) / 500 + F_delta + F_z2
+                while counter_for_Z_rotor < len(Z_rotor_elements[counter_for_Z_stator-1]):
+                                                                        
+                        Z_rotor = Z_rotor_elements[counter_for_Z_stator-1][counter_for_Z_rotor]
+                        counter_for_Z_rotor = counter_for_Z_rotor + 1
+                        """
+                        D2 = D*10 - 2 * delta
+                        """
+                        I2 = k19 * k_w1 * int(N_k1) * Z_stator / Z_rotor
                         
-                                                kz = Fv / F_delta
-  
-                                                alpha_delta = alpha_delta_plot(kz)
-                                                
-                                                kb = kb_plot(kz)
-                                                                                           
-                                            i0_mi_percentage = k44 * Fv / (Z_stator * k_w1 * int(N_k1))
-                                            
-                                            if i0_mi_percentage >= MagnetizingCurrent_min and i0_mi_percentage <= MagnetizingCurrent_max:
-                                                
-                                                if temp_flag_2 != 1:
-                                            
-                                                    Dp = k65 - 1.05*k21 * k_w1 * int(N_k1) * Z_stator / Z_rotor ##
-                                            
-                                                    r2_15 = (k68 / (alpha_delta * kb) * g2 / (I2 * k_w1) + k66 * (math.sin(math.radians(k366 / Z_rotor / 2)) * g2) / (k_w1 * int(N_k1)) * Z_rotor**2 / Z_stator - k67 * 1.05 * math.sin(math.radians(k366 / Z_rotor / 2)) * g2 * Z_rotor) * 10**(-2) ## gresno
-                                            
-                                                    r2_75 = 1.24 * r2_15 ##
-                                            
-                                                    k = int(N_k1)**2 * Z_stator**2 * k_w1**2 / (m1 * Z_rotor)
-                                            
-                                                    lambda_cv1 = (k72 * alpha_delta * kb * Z_stator * k_w1 * ky**2 - k73 * alpha_delta * kb * k_w1 * Z_stator * CoilPitch * ky**2) 
-                                                    lambda_d1 = k74 / Z_rotor - k75 ##
-                                            
-                                                    hp = 1.05 * h_z2 ##
-                                            
-                                                    lambda_cv2 = k87 * alpha_delta* kb * k_w1 / (Z_rotor * 4 * math.sin((math.pi*p/Z_rotor))**2) * math.log((4.7 * Dp) / (1.05 * h_z2 + 2 * Sp / (1.05 * h_z2)), 10) 
-                                            
-                                                    lambda_d2 = k88 / Z_stator - k89
-                                            
-                                                    if p == 4: ##
-                                                        P_meh = P1_meh_plot(D*10) ##
-                                                    elif p == 3:
-                                                        P_meh = P2_meh_plot(D*10) ##
-                                                    elif p == 2:
-                                                        P_meh = P3_meh_plot(D*10) ##                                                    
-                                            
-                                                    temp_flag_2 = 1                                                    
-                                            
-                                                """
-                                                b_k11 = (k45 - k12 * r / q) / Z_stator ##
-                                                """
-                                                #b_k21 = (k14 + math.pi * 2 * h_z1 + k12 * r / q) / Z_stator
-                                            
-                                                r1_15 = Z_stator * int(N_k1) * number_of_conductors * (k63 + k64 / (alpha_delta * kb) / k_w1) 
-                                            
-                                                r1_75 = 1.24 * r1_15
-                                                """
-                                                Dp = k65 - 1.05*k21 * k_w1 * int(N_k1) * Z_stator / Z_rotor ##
-                                            
-                                                k = int(N_k1)**2 * Z_stator**2 * k_w1**2 / (m1 * Z_rotor) ##
-                                            
-                                                r2_15 = (k68 / (alpha_delta * kb) * g2 / (I2 * k_w1) + k66 * (math.sin(math.radians(k366 / Z_rotor / 2)) * g2) / (k_w1 * int(N_k1)) * Z_rotor**2 / Z_stator - k67 * 1.05 * math.sin(math.radians(k366 / Z_rotor / 2)) * g2 * Z_rotor) * 10**(-2) ##
-                                            
-                                                r2_75 = 1.24 * r2_15 ##
-                                                """
+                        g2 = g2_elements[comb1[combinator_1][4]]                                         
 
-                                                if StatorSlot == 'Trapezoidal':
-                                                    h1 = h_z1 - (h5 + h6)
-                                                    b_k21 = (k14 + math.pi * 2 * h_z1 + k12 * r / q) / Z_stator
-                                                    StatorPermeance_Trapezoidal_Single(h1, b_k11, b_k21, h_42, a1, h6, k82)
-                                                elif StatorSlot == 'Rectangular':
-                                                    h1 = h_z1 - h5
-                                                    SlotPermeance_Rectangular_Single(h1, b_k1, h5, a1)
+                        if RotorSlot == 'Rounded':
+                            RotorDimensions_Rounded(k104, k105, k106, k107, B_z2, k110, Z_rotor, N_k1, r, q, h_42)
+                            H_z2 = MagneticField_Rounded(B_z2)
+                        elif RotorSlot == 'Trapezoidal':
+                            RotorDimensions_Trapezoidal(I2, g2, h_12, k22, k24, Z_rotor, k25, r, q, k_Fe, k31, a2)
+                            if B_z2_max > 1.8:
+                                break
+                            H_z2 = MagneticField_Trapezoidal(B_z2_min, B_z2_max, B_z2_avg)                                      
+                        elif RotorSlot == 'Circular':
+                            RotorDimensions_Circular(k105, k106, I2, g2, a2, Z_rotor, r, q)
+                            if B_z2_max > 1.8:
+                                break
+                            MagneticField_Circular(B_z2_min, B_z2_max)
+                        #if B_z2_max > 1.8 and RotorSlot == 'Trapezoidal':
+                            #break
+                        
+                        #b_k2 = I2 / (g2 * h_12)
+                        
+                        #g2 = I2 / ((h_12 * b_k2 + 0.5 * (b_k2**2 - a2**2)) * 1.05) ## moze da se douprosti
+                        
+                        if g2 < g2_elements[0]:
+                            continue                                            
+                        
+                        Ip = I2 / (2 * math.sin(math.radians(k366 / Z_rotor / 2)))
+                        
+                        Sp = k19 / 1.6 * (k_w1 * int(N_k1)) / (math.sin(math.radians(k366 / Z_rotor / 2)) * g2) * Z_stator / Z_rotor
+                        """
+                        b_k2 = k21 * k_w1 * int(N_k1) * Z_stator / Z_rotor
+                        """
+                        """
+                        h_z2 = k22 + b_k2
 
-                                                if RotorSlot == 'Trapezoidal':
-                                                    RotorPermeance_Trapezoidal(h_z1, Z_rotor, Z_stator, k82, k83, k84, k85, k_w1, N_k1)
-                                                elif RotorSlot == 'Rounded':
-                                                    SlotPermeance_Rounded_Open(h_12, h_42, d1, d2, a2)
-                                                elif RotorSlot == 'Circular':
-                                                    SlotPermeance_Circular_Open(a2, h_42)
+                        b_z2_avg = k24 / Z_rotor - b_k2 * (2 * math.pi / Z_rotor + 1)
+                    
+                        b_z2_max = k23 / Z_rotor - b_k2 * (math.pi / Z_rotor + 1)
+                    
+                        b_z2_min = k25 / Z_rotor - b_k2 * (3 * math.pi / Z_rotor + 1)
+
+                        if b_z2_min <= 0:
+                            break
+                        
+                        B_z2_max = ((1 + r / q) * B_delta * k31) / (b_z2_min * Z_rotor * k_Fe)
+                    
+                        B_z2_min = ((1 + r / q) * B_delta * k31) / (b_z2_max * Z_rotor * k_Fe)
+                    
+                        B_z2_avg = (B_z2_max + B_z2_min) / 2
+                        """
+
+                        #if B_z2_max > 1.8:
+                            #break
+                        
+                        """
+                        B_z2_max1 = (k56 + r / q * k56) / (b_z2_min * Z_rotor)
+                        
+                        B_z2_min1 = (k56 + r / q * k56) / (b_z2_max * Z_rotor)
+                        
+                        B_z2_avg1 = ((k56 + r / q * k56) / Z_rotor * (1 / b_z2_min + 1 / b_z2_max)) / 2                                                    
+                        """
+                        """
+                        H_z2_min = H_plot(B_z2_min)
+                    
+                        H_z2_max = H_plot(B_z2_max)
+                    
+                        H_z2_avg = H_plot(B_z2_avg)
+                    
+                        H_z2 = (H_z2_min + H_z2_max + 4 * H_z2_avg)/6
+                        """
+                        H_z1 = H_plot(B_z1)
+                                                        
+                        temp_flag_1 = 0
+                        
+                        temp_flag_2 = 0
+
+                        for number_of_conductors in range(1, 8):  
+                            
+                            d = math.sqrt((4 * I_1nf) / (g1 * number_of_conductors * math.pi))
+                            
+                            if d < 0.05:
+                                break
+                            
+                            Sk = int(N_k1) * k9 / number_of_conductors
+                            
+                            if StatorSlot == 'Rectangular':
+                                SlotDimensions_Rectangular(k12, k103, r, q, Z_stator, Sk, a1, h5, temp_flag_1)   
+                                
+                            elif StatorSlot == 'Trapezoidal':
+                                SlotDimensions_Trapezoidal(k12, k45, k48, k52, k53, k54, k55, k58, r, q, Z_stator, D, Sk, temp_flag_1)
+                            
+                            if temp_flag_1 != 1:
+                                
+                                #b_k11 = (k45 - k12 * r / q) / Z_stator ##
+                                #b_z1 = (k12 + k12 * r / q) / Z_stator ##          
+                                
+                                #k_1 = (-2 * k12 * r / q) / math.pi + k58 + (2 * k12 * r / q - 2 * k45) / Z_stator ##
+                                
+                                F_delta = ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 ##                     
+                                
+                                if RotorSlot == 'Circular':
+                                    F_z2 = 2 * (h_42 * H_z2_min + b_k2 * H_z2_max) / 1000
+                                else:
+                                    F_z2 = (H_z2 * h_z2) / 3000 ## 
+                                
+                                temp_flag_1 = 1
+                                
+                            if F_delta <= 0:
+                                break                                                
+                            """
+                            b_k11 = (k45 - k12 * r / q) / Z_stator ##
+                            b_z1 = (k12 + k12 * r / q) / Z_stator ##                                                
+                            """
+                            """
+                            k_111 = (Z_stator * b_k11) / math.pi + D - 2 * h6 - 2 * b_k11 + a1 - (Z_stator * b_z1) / math.pi 
+                            k_222 = (Z_stator * b_k11 * a1) / math.pi - (Z_stator * b_k11 * 2 * h6) / math.pi - (Z_stator * b_k11*b_k11) / math.pi - (2 * Sk * Z_stator) / math.pi - 2 * D * h6 - D * b_k11 + D * a1 + (Z_stator * b_z1 * 2 * h6) / math.pi + (Z_stator * b_z1 * b_k11) / math.pi - (Z_stator * b_z1 * a1) / math.pi
+                            
+                            
+                            k_11 = (k47 - k12 * r / q * 2) / math.pi + k46 - 2 * b_k11
+                            """
+                            #k_22 = (k48 + r / q * (k52 + (k53 - 2 * k12**2 * r / q) / Z_stator) + k54 / Z_stator) / math.pi + k55 - D * b_k11 - (2 * Sk * Z_stator) / math.pi
+                            
+                            
+                            """
+                            k_1 = (-2 * k12 * r / q) / math.pi + k58 + (2 * k12 * r / q - 2 * k45) / Z_stator ##
+                            """
+                            
+                            """
+                            k_2 = (r / q * (k52 + (k53 - 2 * k12**2 * r / q) / Z_stator) + k54 / Z_stator) / math.pi + k59 + D * k12 * r / q - (2 * Sk * Z_stator) / math.pi
+                            """
+                        
+                            
+                            #h_z1 = (-k_1 + math.sqrt(k_1**2 - 4 * k_22)) / 2
+                            
+                            if h_z1 <= 0:
+                                break                                        
+                            """
+                            b_k21 = k14 / Z_stator + (math.pi * 2 * h_z1) / Z_stator + (k12 * r / q) / Z_stator  
+                        
+                            h_v1 = k17 * alpha_delta * (1 + r / q)
+                        
+                            D11 = k16 + 2 * k17 * alpha_delta + 2 * h_z1 + 2 * k17 * alpha_delta * r / q                                                     
+                            """
+                            
+                            #F_delta = ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 ##
+                            
+                            #F_z2 = (H_z2 * h_z2) / 3000 ##
+                            
+                            """
+                            F_z1 = (H_z1 * h_z1) / 500 
+                            
+                            F_v1 = (Xi_v1 * H_v1 * math.pi / (2 * p) * (k16 + 2 * k17 * alpha_delta - k26 * alpha_delta * 10**6)) / 1000 + k38 + k40 * (2 * h_z1 + k17 * alpha_delta * r / q)
+                            
+                            Fv = (Xi_v1 * H_v1 * math.pi / (2 * p) * (k16 + 2 * k17 * alpha_delta - k26 * alpha_delta * 10**6)) / 1000 + k38 + k40 * (2 * h_z1 + k17 * alpha_delta * r / q) + ((k41 * (1 + r / q)) / (1 - Z_rotor * k34 - Z_stator * k35 + Z_stator * Z_rotor * k36)) / 1000 + (H_z1 * h_z1) / 500  - k42 * b_k2 + (H_z2 * h_z2) / 3000
+                            """                                        
+                            
+                            alpha_delta = 0.64
+                            
+                            kb = 1.11
+                            
+                            for counter in range(1,3):
+                                """
+                                h_v2 = k26 * alpha_delta * (1 + r / q) * 10**6
+                            
+                                D_22 = (D*10 - 2 * delta - 2 * k26 * alpha_delta * 10**6 - 2 * k22 + 0.4 * D*10 - 2 * 10**6 * k26 * alpha_delta * r / q - 2 * b_k2) / 2 
+                                """    
+                                Fv = (Xi_v1 * H_v1 * math.pi / (2 * p) * (k16 + 2 * k17 * alpha_delta - k26 * alpha_delta * 10**6)) / 1000 + k38 + k40 * (2 * h_z1 + k17 * alpha_delta * r / q) + (H_z1 * h_z1) / 500 + F_delta + F_z2
+
+                                kz = Fv / F_delta
+
+                                alpha_delta = alpha_delta_plot(kz)
+                                
+                                kb = kb_plot(kz)
+                                                                            
+                            i0_mi_percentage = k44 * Fv / (Z_stator * k_w1 * int(N_k1))
+                            
+                            if i0_mi_percentage >= MagnetizingCurrent_min and i0_mi_percentage <= MagnetizingCurrent_max:
+                                
+                                if temp_flag_2 != 1:
+                            
+                                    Dp = k65 - 1.05*k21 * k_w1 * int(N_k1) * Z_stator / Z_rotor ##
+                            
+                                    r2_15 = (k68 / (alpha_delta * kb) * g2 / (I2 * k_w1) + k66 * (math.sin(math.radians(k366 / Z_rotor / 2)) * g2) / (k_w1 * int(N_k1)) * Z_rotor**2 / Z_stator - k67 * 1.05 * math.sin(math.radians(k366 / Z_rotor / 2)) * g2 * Z_rotor) * 10**(-2) ## gresno
+                            
+                                    r2_75 = 1.24 * r2_15 ##
+                            
+                                    k = int(N_k1)**2 * Z_stator**2 * k_w1**2 / (m1 * Z_rotor)
+                            
+                                    lambda_cv1 = (k72 * alpha_delta * kb * Z_stator * k_w1 * ky**2 - k73 * alpha_delta * kb * k_w1 * Z_stator * CoilPitch * ky**2) 
+                                    lambda_d1 = k74 / Z_rotor - k75 ##
+                            
+                                    hp = 1.05 * h_z2 ##
+                            
+                                    lambda_cv2 = k87 * alpha_delta* kb * k_w1 / (Z_rotor * 4 * math.sin((math.pi*p/Z_rotor))**2) * math.log((4.7 * Dp) / (1.05 * h_z2 + 2 * Sp / (1.05 * h_z2)), 10) 
+                            
+                                    lambda_d2 = k88 / Z_stator - k89                                                                                           
+                            
+                                    temp_flag_2 = 1                                                    
+                            
+                                """
+                                b_k11 = (k45 - k12 * r / q) / Z_stator ##
+                                """
+                                #b_k21 = (k14 + math.pi * 2 * h_z1 + k12 * r / q) / Z_stator
+                            
+                                r1_15 = Z_stator * int(N_k1) * number_of_conductors * (k63 + k64 / (alpha_delta * kb) / k_w1) 
+                            
+                                r1_75 = 1.24 * r1_15
+                                """
+                                Dp = k65 - 1.05*k21 * k_w1 * int(N_k1) * Z_stator / Z_rotor ##
+                            
+                                k = int(N_k1)**2 * Z_stator**2 * k_w1**2 / (m1 * Z_rotor) ##
+                            
+                                r2_15 = (k68 / (alpha_delta * kb) * g2 / (I2 * k_w1) + k66 * (math.sin(math.radians(k366 / Z_rotor / 2)) * g2) / (k_w1 * int(N_k1)) * Z_rotor**2 / Z_stator - k67 * 1.05 * math.sin(math.radians(k366 / Z_rotor / 2)) * g2 * Z_rotor) * 10**(-2) ##
+                            
+                                r2_75 = 1.24 * r2_15 ##
+                                """
+
+                                if StatorSlot == 'Trapezoidal':
+                                    h1 = h_z1 - (h5 + h6)
+                                    b_k21 = (k14 + math.pi * 2 * h_z1 + k12 * r / q) / Z_stator
+                                    StatorPermeance_Trapezoidal_Single(h1, b_k11, b_k21, h_42, a1, h6, k82)
+                                elif StatorSlot == 'Rectangular':
+                                    h1 = h_z1 - h5
+                                    SlotPermeance_Rectangular_Single(h1, b_k1, h5, a1)
+
+                                if RotorSlot == 'Trapezoidal':
+                                    RotorPermeance_Trapezoidal(h_z1, Z_rotor, Z_stator, k82, k83, k84, k85, k_w1, N_k1)
+                                elif RotorSlot == 'Rounded':
+                                    SlotPermeance_Rounded_Open(h_12, h_42, d1, d2, a2)
+                                elif RotorSlot == 'Circular':
+                                    SlotPermeance_Circular_Open(a2, h_42)
 
 
-                                               #elif RotorSlot == 'Rectangular':
-                                                    #SlotPermeance_Circular_Closed(h_or, Ib)
+                                #elif RotorSlot == 'Rectangular':
+                                    #SlotPermeance_Circular_Closed(h_or, Ib)
 
-                                                #lambda_k1 = (2 * h1) / (3 * (b_k11 + b_k21)) + 0.6 / b_k11 + (2 * h5) / (a1 + b_k11 + h6 / a1) ## gresno za malce
-                                                """
-                                                lambda_cv1 = k72 * alpha_delta * kb * Z_stator * k_w1 * ky**2 - k73 * alpha_delta * kb * k_w1 * Z_stator * CoilPitch * ky**2 ##
-                                            
-                                                lambda_d1 = k74 / Z_rotor - k75 ##
-                                                """                                    
-                                                x_sigma1 = (k78 * Z_stator**2 * ky**2 * int(N_k1)**2 - k79 * Z_stator**2 * CoilPitch * ky**2 * int(N_k1)**2 + ((k80 / (alpha_delta * kb) * Z_stator * int(N_k1)**2) / Z_rotor + k81 / (alpha_delta * kb) * Z_stator * int(N_k1)**2 + lambda_k1 * k76 / (alpha_delta * kb) * Z_stator * int(N_k1)**2) / k_w1) / 10
-                                                k76 = 0.158/100**3 * f * k1 /(2 * m1)
-                                                #lambda_k2 = Z_rotor * (k82 * h_z1 - k83) / (k85 * int(N_k1) * Z_stator * k_w1) + k84 / k85
-                                                """                                          
-                                                hp = 1.05 * h_z2 ##
-                                            
-                                                lambda_cv2 = k87 * alpha_delta* kb * k_w1 / (Z_rotor * 4 * math.sin((math.pi*p/Z_rotor))**2) * math.log((4.7 * Dp) / (1.05 * h_z2 + 2 * Sp)) ##
-                                            
-                                                lambda_d2 = k88 / Z_stator - k89 ##
-                                                """
-                                                x_sigma2 = ((k92 / (alpha_delta * kb) * Z_rotor * (k82 * h_z1 - k83) / (int(N_k1) * k_w1 * Z_stator) + k90 / (alpha_delta* kb) * lambda_cv2 + k91 / (alpha_delta * kb) + k93 / (alpha_delta * kb) / Z_stator) / k_w1) / 10
-                                            
-                                                xm = U_1nf * math.sqrt(3) * 100 / (i0_mi_percentage * I_1n) - x_sigma1
-                                            
-                                                rm = (p_CoreLoss_plot(B_v1) * (k98 * k94 / kb * (k16 / alpha_delta + k17) + k100 * h_z1 + k101 / kb * r / q) / k_w1 + p_CoreLoss_plot(B_z1) * k98 * Z_stator * b_z1 / 1000 * (h_z1 / 1000)**2) / (i0_mi_percentage**2 * 10)
-                                                """
-                                                P_Fe = rm * m1 * i0_mi_percentage**2 * I_1n**2/ (3 * 100**2)
-                                                """
-                                                P_Fe = 30
-                                                P_meh = 40
-                                                ##
-                                            
-                                                sigma1 = 1 + x_sigma1 / xm                                             
-                                            
-                                                Xk =  x_sigma1 * sigma1 + k * x_sigma2 * sigma1**2
-                                            
-                                                I_00 = U_1nf / math.sqrt((r1_75 + rm)**2 + (x_sigma1 + xm)**2)
-                                            
-                                                cos_phi00 = (r1_75 + rm) / math.sqrt((r1_75 + rm)**2 + (x_sigma1 + xm)**2)
-                                            
-                                                s = 0.02
-                                                """
-                                                if p == 4: ##
-                                                    P_meh = P1_meh_plot(D*10) ##
-                                                elif p == 3:
-                                                    P_meh = P2_meh_plot(D*10) ##
-                                                elif p == 2:
-                                                    P_meh = P3_meh_plot(D*10) ##
-                                                """    
-                                                P_temp = 0
-                                                Variant_1 = 0
-                                            
-                                                R1 = r1_75 * sigma1
-                                            
-                                                temp_flag_3 = 0
-                                            
-                                                if RadioButton == 1:
-                                                    Variant_2 = P_2n
-                                                else:
-                                                    Variant_2 = Mn
-                                            
-                                                while Variant_1 < Variant_2 * 0.99 or Variant_1 > Variant_2 * 1.01:                
-                                            
-                                                    R2 = r2_75*k * sigma1**2 / s
-                                            
-                                                    Rk = R1 + R2
-                                            
-                                                    Zk = math.sqrt(Rk**2 + Xk**2)
-                                            
-                                                    I2_refered = U_1nf * sigma1 / Zk
-                                            
-                                                    I_1a = I_00 * cos_phi00 + I2_refered * sigma1 * Rk / Zk
-                                            
-                                                    P1 =  3 * Un * I_1a
-                                            
-                                                    P_Cu1 = 3 * I_1a**2 * R1
-                                            
-                                                    P_Cu2 = 3 * I2_refered**2 * R2 * s
-                                            
-                                                    P0 = P_Fe + P_meh
-                                            
-                                                    Pd = P1 * 0.005                                            
-                                            
-                                                    P_gamma = P_Cu1 + P_Cu2 + P0 + Pd
-                                            
-                                                    P_temp1 = P_temp
-                                            
-                                                    P_temp = P1 - P_gamma
-                                            
-                                                    M = P_temp / (n1 * (1 - s)) * 9.55
-                                            
-                                                    if RadioButton == 1:
-                                                        Variant_1 = P_temp
-                                                    else:
-                                                        Variant_1 = M
-                                            
-                                                    ratio = Variant_2 / Variant_1
-                                            
-                                                    s = s * ratio                                                    
-                                            
-                                                    if P_temp1 > P_temp or s >= 1:   
-                                                        temp_flag_3 = 1  
-                                                        break
-                                            
-                                                if temp_flag_3 != 1:
-                                            
-                                                    Mn = M
-                                            
-                                                    Ir = I_00 * (1 - cos_phi00**2) + I2_refered / sigma1 * Xk / Zk
-                                            
-                                                    I1 = math.sqrt(I_1a**2 + Ir**2)
-                                            
-                                                    Rk_starting = R1 + R2 * s / ratio
-                                            
-                                                    Zk_starting = math.sqrt(Rk_starting**2 + Xk**2)
-                                            
-                                                    Ir_starting = I_00 * (1 - cos_phi00**2) + I2_refered * Zk  / sigma1 * Xk / Zk_starting**2
-                                            
-                                                    I_1a_starting = I_00 * sigma1 + I2_refered * Zk / sigma1* Rk_starting / Zk_starting**2
-                                            
-                                                    I1_starting = math.sqrt(I_1a_starting**2 + Ir_starting**2)
-                                            
-                                                    """
-                                                                                                    Mn = P_temp / (n1 * (1 - s / ratio)) * 9.55
-                                                                                                    """
-                                            
-                                                    M_starting = (p * m1 * U_1nf**2 * R2 * s / ratio) / (2 * math.pi * f * ((R1 + R2 * s)**2 + (x_sigma1 * sigma1 + x_sigma2*k * sigma1**2)**2))
-                                            
-                                                    ##
-                                            
-                                                    s_max = (sigma1 * r2_75 * k) / math.sqrt(r1_75**2 + (x_sigma1 + sigma1 * x_sigma2*k)**2)
-                                            
-                                                    R2_max = r2_75*k * sigma1**2 / s_max
-                                            
-                                                    Rk_max = R1 + R2_max
-                                            
-                                                    Zk_max = math.sqrt(Rk_max**2 + Xk**2)
-                                            
-                                                    I2_refered_max = U_1nf * sigma1 / Zk_max
-                                            
-                                                    I_1a_max = I_00 * cos_phi00 + I2_refered_max * sigma1 * Rk_max / Zk_max
-                                            
-                                                    P1_max =  3 * Un * I_1a_max
-                                            
-                                                    P_Cu1_max = 3 * I_1a_max**2 * R1
-                                            
-                                                    P_Cu2_max = 3 * I2_refered_max**2 * R2_max * s_max
-                                            
-                                                    Pd_max = P1_max * 0.005                                            
-                                            
-                                                    P_gamma_max = P_Cu1_max + P_Cu2_max + P0 + Pd_max   
-                                            
-                                                    P_max = P1_max - P_gamma_max
-                                            
-                                                    M_max = P_max / (n1 * (1 - s_max)) * 9.55
-                                            
-                                                    ##
-                                            
-                                                    StartingCurrentRatio = I1_starting / I1
-                                            
-                                                    StartingTorqueRatio = M_starting / Mn
-                                            
-                                                    MaxTorqueRatio = M_max / Mn
-                                            
-                                                    """
-                                                    StartingTorqueRatio_array.append(StartingTorqueRatio)
-                                                    MaxTorqueRatio_array.append(MaxTorqueRatio)
-                                                    StartingCurrentRatio_array.append(StartingCurrentRatio)
-                                            
-                                                    STR = np.asarray(StartingTorqueRatio_array)
-                                                    MTR = np.asarray(MaxTorqueRatio_array)
-                                                    SCR = np.asarray(StartingCurrentRatio_array)
-                                                    np.savetxt("Starting Torque Ratio.csv", STR, delimiter=",")
-                                                    np.savetxt("Max Torque Ratio.csv", MTR, delimiter=",")
-                                                    np.savetxt("Starting Current Ratio.csv", SCR, delimiter=",")
-                                                    """
-                                                    """
-                                                                                                    if StartingTorqueRatio > k_Mp * 0.9 and StartingTorqueRatio < k_Mp * 1.1:
-                                                                                                        if MaxTorqueRatio > k_Mm * 0.9 and MaxTorqueRatio < k_Mm * 1.1:
-                                                                                                            if StartingCurrentRatio < 1.2 * kp:
-                                                                                                                eta = 1 - P_gamma / P1
-                                                                                                                cos_phi = I_1a / I1
-                                                                                                                print("Starting Current Ratio = ", round(StartingCurrentRatio, 2))
-                                                                                                                print("Starting Torque Ratio = ", round(StartingTorqueRatio, 2))
-                                                                                                                print("Max Torque Ratio = ", round(MaxTorqueRatio, 2))
-                                                                                                                print("Efficiency = ", round(eta, 2))
-                                                                                                                print("Power Factor = ", round(cos_phi,2))
-                                                                                                                print("Press ENTER to continue...")
-                                                                                                                input()
-                                                                                                    """
-                                                    eta = 1 - P_gamma / P1
-                                                    cos_phi = I_1a / I1
-                                            
-                                                    if conditions(eta, cos_phi, StartingCurrentRatio, StartingTorqueRatio, MaxTorqueRatio) == 1:
-                                                        print("Starting Current Ratio = ", round(StartingCurrentRatio, 2))
-                                                        print("Starting Torque Ratio = ", round(StartingTorqueRatio, 2))
-                                                        print("Max Torque Ratio = ", round(MaxTorqueRatio, 2))
-                                                        print("Efficiency = ", round(eta, 2))
-                                                        print("Power Factor = ", round(cos_phi,2))
-                                                        print("Press ENTER to continue...")
-                                                        input()
+                                #lambda_k1 = (2 * h1) / (3 * (b_k11 + b_k21)) + 0.6 / b_k11 + (2 * h5) / (a1 + b_k11 + h6 / a1) ## gresno za malce
+                                """
+                                lambda_cv1 = k72 * alpha_delta * kb * Z_stator * k_w1 * ky**2 - k73 * alpha_delta * kb * k_w1 * Z_stator * CoilPitch * ky**2 ##
+                            
+                                lambda_d1 = k74 / Z_rotor - k75 ##
+                                """                                    
+                                x_sigma1 = (k78 * Z_stator**2 * ky**2 * int(N_k1)**2 - k79 * Z_stator**2 * CoilPitch * ky**2 * int(N_k1)**2 + ((k80 / (alpha_delta * kb) * Z_stator * int(N_k1)**2) / Z_rotor + k81 / (alpha_delta * kb) * Z_stator * int(N_k1)**2 + lambda_k1 * k76 / (alpha_delta * kb) * Z_stator * int(N_k1)**2) / k_w1) / 10
+                                k76 = 0.158/100**3 * f * k1 /(2 * m1)
+                                #lambda_k2 = Z_rotor * (k82 * h_z1 - k83) / (k85 * int(N_k1) * Z_stator * k_w1) + k84 / k85
+                                """                                          
+                                hp = 1.05 * h_z2 ##
+                            
+                                lambda_cv2 = k87 * alpha_delta* kb * k_w1 / (Z_rotor * 4 * math.sin((math.pi*p/Z_rotor))**2) * math.log((4.7 * Dp) / (1.05 * h_z2 + 2 * Sp)) ##
+                            
+                                lambda_d2 = k88 / Z_stator - k89 ##
+                                """
+                                x_sigma2 = ((k92 / (alpha_delta * kb) * Z_rotor * (k82 * h_z1 - k83) / (int(N_k1) * k_w1 * Z_stator) + k90 / (alpha_delta* kb) * lambda_cv2 + k91 / (alpha_delta * kb) + k93 / (alpha_delta * kb) / Z_stator) / k_w1) / 10
+                            
+                                xm = U_1nf * math.sqrt(3) * 100 / (i0_mi_percentage * I_1n) - x_sigma1
+                            
+                                rm = (p_CoreLoss_plot(B_v1) * (k98 * k94 / kb * (k16 / alpha_delta + k17) + k100 * h_z1 + k101 / kb * r / q) / k_w1 + p_CoreLoss_plot(B_z1) * k98 * Z_stator * b_z1 / 1000 * (h_z1 / 1000)**2) / (i0_mi_percentage**2 * 10)
+                                """
+                                P_Fe = rm * m1 * i0_mi_percentage**2 * I_1n**2/ (3 * 100**2)
+                                """
+                                P_Fe = 30
+                                #P_meh = 40
+                                ##
+                            
+                                sigma1 = 1 + x_sigma1 / xm                                             
+                            
+                                Xk =  x_sigma1 * sigma1 + k * x_sigma2 * sigma1**2
+                            
+                                I_00 = U_1nf / math.sqrt((r1_75 + rm)**2 + (x_sigma1 + xm)**2)
+                            
+                                cos_phi00 = (r1_75 + rm) / math.sqrt((r1_75 + rm)**2 + (x_sigma1 + xm)**2)
+                            
+                                s = 0.02
+                                """
+                                if p == 4: ##
+                                    P_meh = P1_meh_plot(D*10) ##
+                                elif p == 3:
+                                    P_meh = P2_meh_plot(D*10) ##
+                                elif p == 2:
+                                    P_meh = P3_meh_plot(D*10) ##
+                                """    
+                                P_temp = 0
+                                Variant_1 = 0
+                            
+                                R1 = r1_75 * sigma1
+                            
+                                temp_flag_3 = 0
+                            
+                                if RadioButton == 1:
+                                    Variant_2 = P_2n
+                                else:
+                                    Variant_2 = Mn
+                            
+                                while Variant_1 < Variant_2 * 0.99 or Variant_1 > Variant_2 * 1.01:                
+                            
+                                    R2 = r2_75*k * sigma1**2 / s
+                            
+                                    Rk = R1 + R2
+                            
+                                    Zk = math.sqrt(Rk**2 + Xk**2)
+                            
+                                    I2_refered = U_1nf * sigma1 / Zk
+                            
+                                    I_1a = I_00 * cos_phi00 + I2_refered * sigma1 * Rk / Zk
+                            
+                                    P1 =  3 * Un * I_1a
+                            
+                                    P_Cu1 = 3 * I_1a**2 * R1
+                            
+                                    P_Cu2 = 3 * I2_refered**2 * R2 * s
+                            
+                                    P0 = P_Fe + P_meh
+                            
+                                    Pd = P1 * 0.005                                            
+                            
+                                    P_gamma = P_Cu1 + P_Cu2 + P0 + Pd
+                            
+                                    P_temp1 = P_temp
+                            
+                                    P_temp = P1 - P_gamma
+                            
+                                    M = P_temp / (n1 * (1 - s)) * 9.55
+                            
+                                    if RadioButton == 1:
+                                        Variant_1 = P_temp
+                                    else:
+                                        Variant_1 = M
+                            
+                                    ratio = Variant_2 / Variant_1
+                            
+                                    s = s * ratio                                                    
+                            
+                                    if P_temp1 > P_temp or s >= 1:   
+                                        temp_flag_3 = 1  
+                                        break
+                            
+                                if temp_flag_3 != 1:
+                            
+                                    Mn = M
+                            
+                                    Ir = I_00 * (1 - cos_phi00**2) + I2_refered / sigma1 * Xk / Zk
+                            
+                                    I1 = math.sqrt(I_1a**2 + Ir**2)
+                            
+                                    Rk_starting = R1 + R2 * s / ratio
+                            
+                                    Zk_starting = math.sqrt(Rk_starting**2 + Xk**2)
+                            
+                                    Ir_starting = I_00 * (1 - cos_phi00**2) + I2_refered * Zk  / sigma1 * Xk / Zk_starting**2
+                            
+                                    I_1a_starting = I_00 * sigma1 + I2_refered * Zk / sigma1* Rk_starting / Zk_starting**2
+                            
+                                    I1_starting = math.sqrt(I_1a_starting**2 + Ir_starting**2)
+                            
+                                    """
+                                                                                    Mn = P_temp / (n1 * (1 - s / ratio)) * 9.55
+                                                                                    """
+                            
+                                    M_starting = (p * m1 * U_1nf**2 * R2 * s / ratio) / (2 * math.pi * f * ((R1 + R2 * s)**2 + (x_sigma1 * sigma1 + x_sigma2*k * sigma1**2)**2))
+                            
+                                    ##
+                            
+                                    s_max = (sigma1 * r2_75 * k) / math.sqrt(r1_75**2 + (x_sigma1 + sigma1 * x_sigma2*k)**2)
+                            
+                                    R2_max = r2_75*k * sigma1**2 / s_max
+                            
+                                    Rk_max = R1 + R2_max
+                            
+                                    Zk_max = math.sqrt(Rk_max**2 + Xk**2)
+                            
+                                    I2_refered_max = U_1nf * sigma1 / Zk_max
+                            
+                                    I_1a_max = I_00 * cos_phi00 + I2_refered_max * sigma1 * Rk_max / Zk_max
+                            
+                                    P1_max =  3 * Un * I_1a_max
+                            
+                                    P_Cu1_max = 3 * I_1a_max**2 * R1
+                            
+                                    P_Cu2_max = 3 * I2_refered_max**2 * R2_max * s_max
+                            
+                                    Pd_max = P1_max * 0.005                                            
+                            
+                                    P_gamma_max = P_Cu1_max + P_Cu2_max + P0 + Pd_max   
+                            
+                                    P_max = P1_max - P_gamma_max
+                            
+                                    M_max = P_max / (n1 * (1 - s_max)) * 9.55
+                            
+                                    ##
+                            
+                                    StartingCurrentRatio = I1_starting / I1
+                            
+                                    StartingTorqueRatio = M_starting / Mn
+                            
+                                    MaxTorqueRatio = M_max / Mn
+                            
+                                    """
+                                    StartingTorqueRatio_array.append(StartingTorqueRatio)
+                                    MaxTorqueRatio_array.append(MaxTorqueRatio)
+                                    StartingCurrentRatio_array.append(StartingCurrentRatio)
+                            
+                                    STR = np.asarray(StartingTorqueRatio_array)
+                                    MTR = np.asarray(MaxTorqueRatio_array)
+                                    SCR = np.asarray(StartingCurrentRatio_array)
+                                    np.savetxt("Starting Torque Ratio.csv", STR, delimiter=",")
+                                    np.savetxt("Max Torque Ratio.csv", MTR, delimiter=",")
+                                    np.savetxt("Starting Current Ratio.csv", SCR, delimiter=",")
+                                    """
+                                    """
+                                    if StartingTorqueRatio > k_Mp * 0.9 and StartingTorqueRatio < k_Mp * 1.1:
+                                        if MaxTorqueRatio > k_Mm * 0.9 and MaxTorqueRatio < k_Mm * 1.1:
+                                            if StartingCurrentRatio < 1.2 * kp:
+                                                eta = 1 - P_gamma / P1
+                                                cos_phi = I_1a / I1
+                                                print("Starting Current Ratio = ", round(StartingCurrentRatio, 2))
+                                                print("Starting Torque Ratio = ", round(StartingTorqueRatio, 2))
+                                                print("Max Torque Ratio = ", round(MaxTorqueRatio, 2))
+                                                print("Efficiency = ", round(eta, 2))
+                                                print("Power Factor = ", round(cos_phi,2))
+                                                print("Press ENTER to continue...")
+                                                input()
+                                    """
+                                    eta = 1 - P_gamma / P1
+                                    cos_phi = I_1a / I1
+                            
+                                    if conditions(eta, cos_phi, StartingCurrentRatio, StartingTorqueRatio, MaxTorqueRatio) == 1:
+                                        
+                                        with open(f'{Folder_Path}/Conditions.csv', 'w', newline='') as csvfile:
+                                            fieldnames = ['Name of Condition', 'Value']
+                                            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-                                                        import EndCalculation                                              
+                                            writer.writeheader()
+                                            writer.writerow({'Name of Condition': 'Starting Current Ratio', 'Value': round(StartingCurrentRatio, 2)})
+                                            writer.writerow({'Name of Condition': 'Starting Torque Ratio', 'Value': round(StartingTorqueRatio, 2)})
+                                            writer.writerow({'Name of Condition': 'Maximum Torque Ratio', 'Value': round(MaxTorqueRatio, 2)})
+                                            writer.writerow({'Name of Condition': 'Efficiency', 'Value': round(eta, 2)})
+                                            writer.writerow({'Name of Condition': 'Power Factor', 'Value': round(cos_phi, 2)})
+
+                                        try:
+                                            guli.GuliVariable("bar").setValue(100)
+                                        except ValueError:
+                                            guli.GuliVariable("bar").setValue(100)
+                                            pass
+                                        """
+                                        print("Starting Current Ratio = ", round(StartingCurrentRatio, 2))
+                                        print("Starting Torque Ratio = ", round(StartingTorqueRatio, 2))
+                                        print("Max Torque Ratio = ", round(MaxTorqueRatio, 2))
+                                        print("Efficiency = ", round(eta, 2))
+                                        print("Power Factor = ", round(cos_phi,2))
+                                        print("Press ENTER to continue...")
+                                        input()
+                                        """
+                                        import EndCalculation                                              
     
-                                            
+        try:
+            if guli.GuliVariable("stop").get() == 1:
+                combinator_1 = len(comb1)-1
+            else:
+                pass
+        except ValueError:
+            pass
     
                                             
                                     

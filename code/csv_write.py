@@ -2,7 +2,7 @@ import csv
 from EndCalculation import *
 
 
-with open('/home/andrej/Documents/induction-motor-design-tool/designed_motor_parameters/Parameters.csv', 'w', newline='') as csvfile:
+with open(f'{Folder_Path}/Parameters.csv', 'w', newline='') as csvfile:
     fieldnames = ['Name of Parameter', 'Value']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -56,9 +56,10 @@ with open('/home/andrej/Documents/induction-motor-design-tool/designed_motor_par
     writer.writerow({'Name of Parameter': 'b_z1', 'Value': b_z1})
     writer.writerow({'Name of Parameter': 'a1', 'Value': a1})   
     writer.writerow({'Name of Parameter': 'h5', 'Value': h5})
-    writer.writerow({'Name of Parameter': 'h6', 'Value': h6})
-    writer.writerow({'Name of Parameter': 'b_k11', 'Value': b_k11})
-    writer.writerow({'Name of Parameter': 'b_k21', 'Value': b_k21})
+    if StatorSlot == 'Trapezoidal':
+        writer.writerow({'Name of Parameter': 'h6', 'Value': h6})
+        writer.writerow({'Name of Parameter': 'b_k11', 'Value': b_k11})
+        writer.writerow({'Name of Parameter': 'b_k21', 'Value': b_k21})
     writer.writerow({'Name of Parameter': 'h_z1', 'Value': h_z1})  
     writer.writerow({'Name of Parameter': 'h1', 'Value': h1})   
     writer.writerow({'Name of Parameter': 'D_k1', 'Value': D_k1})
@@ -84,10 +85,11 @@ with open('/home/andrej/Documents/induction-motor-design-tool/designed_motor_par
     writer.writerow({'Name of Parameter': 'h_42', 'Value': h_42})
     writer.writerow({'Name of Parameter': 'b_k2', 'Value': b_k2})
     writer.writerow({'Name of Parameter': 'h_z2', 'Value': h_z2})
-    writer.writerow({'Name of Parameter': 'Sk', 'Value': Sk})  
-    writer.writerow({'Name of Parameter': 'b_z2_max', 'Value': b_z2_max})
-    writer.writerow({'Name of Parameter': 'b_z2_min', 'Value': b_z2_min})
-    writer.writerow({'Name of Parameter': 'b_z2_avg', 'Value': b_z2_avg})
+    writer.writerow({'Name of Parameter': 'Sk', 'Value': Sk}) 
+    if RotorSlot != 'Circular':
+        writer.writerow({'Name of Parameter': 'b_z2_max', 'Value': b_z2_max})
+        writer.writerow({'Name of Parameter': 'b_z2_min', 'Value': b_z2_min})
+        writer.writerow({'Name of Parameter': 'b_z2_avg', 'Value': b_z2_avg})
     
     writer.writerow({'Name of Parameter': 'hp', 'Value': hp})
     writer.writerow({'Name of Parameter': 'bp', 'Value': bp})   

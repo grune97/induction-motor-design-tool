@@ -15,6 +15,7 @@ def Variable(Pn_Mn,
              Kp_Box,
              K_Mp_Box,
              K_Mm_Box,
+             CoilPitch_Entry,
              r,
              StatorSlot_Clicked,
              RotorSlot_Clicked,
@@ -22,7 +23,8 @@ def Variable(Pn_Mn,
              MagnetizingCurrent_Min_Label,
              StartingToruqe_Precision_Entry,
              MaxToruqe_Precision_Entry,
-             Calculation_Combinations_Entry
+             Calculation_Combinations_Entry,
+             Folder_Path_Entry
              ):
     global P_2n
     global Mn
@@ -40,6 +42,9 @@ def Variable(Pn_Mn,
     global kp
     global k_Mp
     global k_Mm
+
+    global CoilPitch
+    global CoilPitch_Flag
  
     global RadioButton    
  
@@ -58,6 +63,7 @@ def Variable(Pn_Mn,
     global MaxToruqe_precision
     global Calculation_Combinations
     
+    global Folder_Path
     
     RadioButton = r
     
@@ -68,7 +74,7 @@ def Variable(Pn_Mn,
         kp = float(Kp_Entry)
         k_Mp = float(K_Mp_Entry)
         k_Mm = float(K_Mm_Entry)
-        p = float(Num_Poles_Entry)
+        p = float(Num_Poles_Entry) / 2
         eta_n = float(Eta_Entry)
         cos_phi_n = float(PowerFactor_Entry)  
 
@@ -81,6 +87,12 @@ def Variable(Pn_Mn,
         k_Mp_condition = float(K_Mp_Box)
         k_Mm_condition = float(K_Mm_Box) 
 
+        try:
+            CoilPitch = float(CoilPitch_Entry)
+            CoilPitch_Flag = 1
+        except ValueError:
+            CoilPitch_Flag = 0
+
         StatorSlot = StatorSlot_Clicked
         RotorSlot = RotorSlot_Clicked
 
@@ -89,13 +101,15 @@ def Variable(Pn_Mn,
         StartingToruqe_precision = float(StartingToruqe_Precision_Entry)
         MaxToruqe_precision = float(MaxToruqe_Precision_Entry)
         Calculation_Combinations = float(Calculation_Combinations_Entry)
+
+        Folder_Path = Folder_Path_Entry
         
         if RadioButton == 1:
             P_2n = float(Pn_Mn)
         else:
             n1 = (60*f) / p
-            P_2n =  Pn_Mn * n1 / 9.55
-            Mn = Pn_Mn
+            P_2n =  int(Pn_Mn) * n1 / 9.55
+            Mn = float(Pn_Mn)
             
         import main               
             
